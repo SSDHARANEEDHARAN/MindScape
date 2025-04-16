@@ -14,7 +14,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, setActiveTab }
     { id: 'social', label: 'Social', icon: <Share2 className="h-4 w-4 mr-2" /> },
     { id: 'chatbot', label: 'AI Assistant', icon: <MessageSquare className="h-4 w-4 mr-2" /> },
     { id: 'admin', label: 'Admin Controls', icon: <MessageSquare className="h-4 w-4 mr-2" /> },
-    { id: 'live', label: '3D Live Prview', icon: <MessageSquare className="h-4 w-4 mr-2" /> }
+    { id: 'Watchs', label: '3D Live Prview', icon: <MessageSquare className="h-4 w-4 mr-2" /> }
   ];
   
   return (
