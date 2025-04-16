@@ -116,7 +116,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                 <Brain className={`h-6 w-6 ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
                 {isSidebarOpen && (
                   <span className={`ml-3 text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>
-                    Mindscape
+                    MindCare
                   </span>
                 )}
               </div>
