@@ -13,7 +13,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, setActiveTab }
     { id: 'health', label: 'Health', icon: <Activity className="h-4 w-4 mr-2" /> },
     { id: 'social', label: 'Social', icon: <Share2 className="h-4 w-4 mr-2" /> },
     { id: 'chatbot', label: 'AI Assistant', icon: <MessageSquare className="h-4 w-4 mr-2" /> },
-    { id: 'admin', label: 'Admin Controls', icon: <MessageSquare className="h-4 w-4 mr-2" /> },
+    { id: 'Admin', label: 'Admin Controls', icon: <MessageSquare className="h-4 w-4 mr-2" /> },
     { id: 'Watchs', label: '3D Live Prview', icon: <MessageSquare className="h-4 w-4 mr-2" /> }
   ];
   

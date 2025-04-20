@@ -7,6 +7,7 @@ interface DailyHabitsStepProps {
   updateUserData: (data: Partial<UserData>) => void;
   nextStep: () => void;
   prevStep: () => void;
+  darkMode: boolean; // ✅ Integrated here
 }
 
 const eveningFoodOptions = [
@@ -16,7 +17,7 @@ const eveningFoodOptions = [
   'Small Tiffen',
   'Hotel Foods',
   'Fries',
-  'Others'
+  'Others',
 ];
 
 const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
@@ -24,6 +25,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
   updateUserData,
   nextStep,
   prevStep,
+  darkMode, // ✅ Used in component
 }) => {
   const [disabilityResponse, setDisabilityResponse] = useState<string>('');
   const [healthConditionResponse, setHealthConditionResponse] = useState<string>('');
@@ -35,7 +37,6 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -44,21 +45,15 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (
-      (disabilityResponse === 'Unwell' && healthConditionResponse === '')
-    ) {
+    if (disabilityResponse === 'Unwell' && healthConditionResponse === '') {
       alert('Please fill in all required fields.');
       return;
     }
-
     nextStep();
   };
 
@@ -78,20 +73,31 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
     updateUserData({ eveningFood: e.target.value });
   };
 
-  const handleInputFocus = () => {
-    setShowFoodOptions(true);
-  };
+  const handleInputFocus = () => setShowFoodOptions(true);
+
+  const baseInputClass = `w-full px-4 py-2 rounded-lg border focus:ring-2 focus:border-transparent ${
+    darkMode
+      ? 'bg-gray-800 text-white border-gray-600 focus:ring-indigo-400'
+      : 'bg-white text-black border-gray-300 focus:ring-indigo-500'
+  }`;
+
+  const baseSelectClass = `w-full px-4 py-2 rounded-lg border focus:ring-2 focus:border-transparent ${
+    darkMode
+      ? 'bg-gray-800 text-white border-gray-600 focus:ring-indigo-400'
+      : 'bg-white text-black border-gray-300 focus:ring-indigo-500'
+  }`;
+
+  const dropdownItemClass = `px-4 py-2 cursor-pointer ${
+    darkMode ? 'hover:bg-gray-700 text-white' : 'hover:bg-indigo-50'
+  }`;
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className={`w-full max-w-md mx-auto ${darkMode ? 'text-white' : 'text-black'}`}>
       <h2 className="text-2xl font-bold mb-6 text-center">Your Daily Habits</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label
-            htmlFor="morningFood"
-            className="text-sm font-medium mb-1 flex items-center"
-          >
+          <label htmlFor="morningFood" className="text-sm font-medium mb-1 flex items-center">
             <Coffee className="w-4 h-4 mr-2" />
             Morning Food
           </label>
@@ -100,18 +106,15 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
             id="morningFood"
             value={userData.morningFood}
             onChange={(e) => updateUserData({ morningFood: e.target.value })}
-            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={baseInputClass}
             placeholder="What do you typically eat for breakfast?"
             required
           />
         </div>
 
-        {/* Updated Evening Food Selection with Dropdown */}
+        {/* Evening Food with Dropdown */}
         <div className="relative" ref={dropdownRef}>
-          <label
-            htmlFor="eveningFood"
-            className="text-sm font-medium mb-1"
-          >
+          <label htmlFor="eveningFood" className="text-sm font-medium mb-1">
             Evening Food
           </label>
           <input
@@ -121,17 +124,20 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
             value={foodInputValue || userData.eveningFood}
             onChange={handleInputChange}
             onFocus={handleInputFocus}
-            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={baseInputClass}
             placeholder="Select or type your evening food"
             required
           />
-          
           {showFoodOptions && (
-            <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-lg py-1 border border-gray-200">
+            <div
+              className={`absolute z-10 mt-1 w-full shadow-lg rounded-lg py-1 border ${
+                darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}
+            >
               {eveningFoodOptions.map((food) => (
                 <div
                   key={food}
-                  className="px-4 py-2 hover:bg-indigo-50 cursor-pointer"
+                  className={dropdownItemClass}
                   onClick={() => handleFoodSelect(food)}
                 >
                   {food}
@@ -142,10 +148,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
         </div>
 
         <div>
-          <label
-            htmlFor="sleepTime"
-            className="text-sm font-medium mb-1 flex items-center"
-          >
+          <label htmlFor="sleepTime" className="text-sm font-medium mb-1 flex items-center">
             <Moon className="w-4 h-4 mr-2" />
             Sleep Time (hours)
           </label>
@@ -154,7 +157,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
             id="sleepTime"
             value={userData.sleepTime || ''}
             onChange={(e) => updateUserData({ sleepTime: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={baseInputClass}
             placeholder="8"
             min="1"
             max="24"
@@ -163,10 +166,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
         </div>
 
         <div>
-          <label
-            htmlFor="screenTime"
-            className="text-sm font-medium mb-1 flex items-center"
-          >
+          <label htmlFor="screenTime" className="text-sm font-medium mb-1 flex items-center">
             <Smartphone className="w-4 h-4 mr-2" />
             Screen Time (hours)
           </label>
@@ -175,7 +175,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
             id="screenTime"
             value={userData.screenTime || ''}
             onChange={(e) => updateUserData({ screenTime: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={baseInputClass}
             placeholder="4"
             min="0"
             max="24"
@@ -186,13 +186,13 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
         {/* Disability Question */}
         <div>
           <label htmlFor="disability" className="text-sm font-medium mb-1">
-            Do you identify as a person with a physical disability or require accommodations related to physical mobility?
+            Do you identify as a person with a physical disability or require accommodations?
           </label>
           <select
             id="disability"
             value={disabilityResponse}
             onChange={(e) => setDisabilityResponse(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            className={baseSelectClass}
           >
             <option value="">Select an option</option>
             <option value="Unwell">Unwell</option>
@@ -202,38 +202,44 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
           </select>
         </div>
 
-        {/* If Unwell, Health Condition Question */}
+        {/* If Unwell */}
         {disabilityResponse === 'Unwell' && (
           <div>
             <label htmlFor="healthCondition" className="text-sm font-medium mb-1">
-              Please indicate if you have any health conditions or require accommodations that may affect your participation. If so, please specify.
+              Any health condition?
             </label>
             <select
               id="healthCondition"
               value={healthConditionResponse}
               onChange={(e) => setHealthConditionResponse(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className={baseSelectClass}
             >
               <option value="">Select an option</option>
-              <option value="Yes, I have a health condition that may require accommodations.">Yes, I have a health condition that may require accommodations.</option>
-              <option value="No, I do not have any health conditions.">No, I do not have any health conditions (last medical checkup was 2 months ago).</option>
-              <option value="I prefer not to disclose this information.">I prefer not to disclose this information.</option>
+              <option value="Yes, I have a health condition that may require accommodations.">
+                Yes
+              </option>
+              <option value="No, I do not have any health conditions.">
+                No (last checkup 2 months ago)
+              </option>
+              <option value="I prefer not to disclose this information.">
+                Prefer not to say
+              </option>
             </select>
           </div>
         )}
 
-        {/* If Health Condition is Yes, Show Medical Checkup Date and Hospital Info */}
+        {/* Medical Info if health condition exists */}
         {healthConditionResponse === 'Yes, I have a health condition that may require accommodations.' && (
           <div>
             <label htmlFor="medicalCheckupDate" className="text-sm font-medium mb-1">
-              For medical purposes, please provide the date of your most recent medical checkup, if you are comfortable doing so.
+              Date of your last medical checkup
             </label>
             <input
               type="date"
               id="medicalCheckupDate"
               value={medicalCheckupDate}
               onChange={(e) => setMedicalCheckupDate(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className={baseInputClass}
               required
             />
 
@@ -246,7 +252,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
                 id="hospitalName"
                 value={hospitalName}
                 onChange={(e) => setHospitalName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={baseInputClass}
                 placeholder="Enter Hospital Name"
               />
 
@@ -258,7 +264,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
                 id="hospitalDistrict"
                 value={hospitalDistrict}
                 onChange={(e) => setHospitalDistrict(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className={baseInputClass}
                 placeholder="Enter Hospital District"
               />
             </div>
@@ -269,13 +275,21 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
           <button
             type="button"
             onClick={prevStep}
-            className="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200"
+            className={`w-1/2 font-medium py-2 px-4 rounded-lg transition duration-200 ${
+              darkMode
+                ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
+            }`}
           >
             Back
           </button>
           <button
             type="submit"
-            className="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+            className={`w-1/2 font-medium py-2 px-4 rounded-lg transition duration-200 ${
+              darkMode
+                ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
+                : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+            }`}
           >
             Continue
           </button>

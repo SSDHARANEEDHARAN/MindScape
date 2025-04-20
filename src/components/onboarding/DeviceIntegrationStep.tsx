@@ -7,13 +7,15 @@ interface DeviceIntegrationStepProps {
   updateUserData: (data: Partial<UserData>) => void;
   completeOnboarding: () => void;
   prevStep: () => void;
+  darkMode: boolean; // ✅ added darkMode prop
 }
 
-const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({ 
-  userData, 
-  updateUserData, 
+const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
+  userData,
+  updateUserData,
   completeOnboarding,
-  prevStep 
+  prevStep,
+  darkMode
 }) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,14 +23,15 @@ const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className={`w-full max-w-md mx-auto ${darkMode ? 'text-white' : 'text-gray-900'}`}>
       <h2 className="text-2xl font-bold mb-6 text-center">Device Integration</h2>
-      <p className="text-center mb-6 text-gray-600">
+      <p className={`text-center mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
         Connect your devices for better health tracking
       </p>
-      
+
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+        {/* Raspberry Pi 5 */}
+        <div className={`p-4 rounded-lg shadow-sm border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-start">
             <div className="flex items-center h-5 mt-1">
               <input
@@ -42,16 +45,17 @@ const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
             <div className="ml-3">
               <label htmlFor="loraModule" className="font-medium flex items-center">
                 <Radio className="w-5 h-5 mr-2 text-indigo-600" />
-                Rasperrypi 5
+                Raspberry Pi 5
               </label>
-              <p className="text-sm text-gray-500">
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Long-range data transmission for remote health monitoring
               </p>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+
+        {/* ESP32 Display */}
+        <div className={`p-4 rounded-lg shadow-sm border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-start">
             <div className="flex items-center h-5 mt-1">
               <input
@@ -65,36 +69,46 @@ const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
             <div className="ml-3">
               <label htmlFor="esp32" className="font-medium flex items-center">
                 <Monitor className="w-5 h-5 mr-2 text-indigo-600" />
-                ESP32 Display 
+                ESP32 Display
               </label>
-              <p className="text-sm text-gray-500">
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 Real-time display of your health metrics and mood data
               </p>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white p-4 rounded-lg shadow-sm border">
+
+        {/* Google Sync */}
+        <div className={`p-4 rounded-lg shadow-sm border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center">
             <Wifi className="w-5 h-5 mr-2 text-indigo-600" />
             <span className="font-medium">Google Sync</span>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             Securely back up your health data to Google Cloud
           </p>
           <button
             type="button"
-            className="mt-2 text-sm bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full hover:bg-indigo-100"
+            className={`mt-2 text-sm px-3 py-1 rounded-full transition ${
+              darkMode
+                ? 'bg-indigo-900 text-indigo-300 hover:bg-indigo-800'
+                : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
+            }`}
           >
             Connect Google Account
           </button>
         </div>
-        
+
+        {/* Navigation Buttons */}
         <div className="pt-4 flex space-x-4">
           <button
             type="button"
             onClick={prevStep}
-            className="w-1/2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition duration-200"
+            className={`w-1/2 font-medium py-2 px-4 rounded-lg transition duration-200 ${
+              darkMode
+                ? 'bg-gray-700 text-white hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+            }`}
           >
             Back
           </button>

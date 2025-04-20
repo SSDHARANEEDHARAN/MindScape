@@ -1,7 +1,6 @@
-// App.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { UserProvider, useUser } from '../src/components/context/UserContext';
+import { UserProvider, useUser } from './components/context/UserContext';
 import Navbar from './components/Navbar/Navbar';
 import Welcome from './components/pages/Welcome';
 import Onboarding from './components/pages/Onboarding';
@@ -19,25 +18,43 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 };
 
 const AppContent: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    // Initialize dark mode from localStorage or system preference
+    const savedMode = localStorage.getItem('darkMode');
+    if (savedMode !== null) {
+      return JSON.parse(savedMode);
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   
-  const toggleDarkMode = () => {
-    setDarkMode(prev => !prev);
+  useEffect(() => {
+    // Apply dark mode class to document
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    // Save preference
+    localStorage.setItem('darkMode', JSON.stringify(darkMode));
+  }, [darkMode]);
+
+  const toggleDarkMode = (): void => {
+    setDarkMode((prev: boolean) => !prev);
   };
   
   return (
     <div className={darkMode ? 'dark' : ''}>
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
         <Router>
           <Navbar darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
           <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/" element={<Welcome darkMode={darkMode} />} />
+            <Route path="/onboarding" element={<Onboarding darkMode={darkMode} />} />
             <Route 
               path="/dashboard/*" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Dashboard darkMode={darkMode} />
                 </ProtectedRoute>
               } 
             />

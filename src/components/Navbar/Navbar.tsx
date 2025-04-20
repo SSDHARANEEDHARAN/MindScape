@@ -1,9 +1,8 @@
-// src/components/Navbar/Navbar.tsx
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Brain, BarChart2, Settings, User, Moon, Sun, 
-  MessageSquare, Shield, LogOut, ChevronRight 
+  Brain, LayoutDashboard, Settings, User, Moon, Sun, 
+  MessageSquare, Shield, LogOut, ChevronRight, Gauge, Eye, Lock
 } from 'lucide-react';
 import { useUser } from '../hooks/useUser';
 
@@ -17,6 +16,7 @@ interface NavItemProps {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick?: () => void;
+  isActive?: boolean;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
@@ -26,19 +26,24 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate('/', { replace: true });
-    // Force reload to ensure complete state reset
     window.location.reload();
-  };
+  }, [logout, navigate]);
 
-  const NavItem: React.FC<NavItemProps> = ({ to, icon: Icon, label, onClick }) => {
+  const NavItem: React.FC<NavItemProps> = React.memo(({ 
+    to, 
+    icon: Icon, 
+    label, 
+    onClick,
+    isActive = false
+  }) => {
     const isHovered = hoveredItem === label;
     
     const content = (
       <div className={`flex items-center p-3 rounded-lg transition-all duration-200
-        ${isHovered ? 
+        ${isHovered || isActive ? 
           'bg-blue-500/20 shadow-md' : 
           'hover:bg-gray-100/10'}
       `}>
@@ -84,7 +89,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
         )}
       </div>
     );
-  };
+  });
+
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
+  }, []);
 
   return (
     <>
@@ -95,7 +104,8 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
             ${darkMode ? 'bg-blue-500/70 hover:bg-blue-400' : 'bg-blue-600/70 hover:bg-blue-500'}
           `}
           style={{ marginTop: '-64px' }}
-          onMouseEnter={() => setIsSidebarOpen(true)}
+          onMouseEnter={toggleSidebar}
+          aria-label="Open navigation menu"
         />
       )}
       
@@ -121,29 +131,35 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                 )}
               </div>
               <button 
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={toggleSidebar}
                 className={`p-1 rounded-full hover:bg-white/10 transition-colors
                   ${darkMode ? 'text-gray-300' : 'text-blue-600'}
                 `}
+                aria-label="Close navigation menu"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
 
             {/* Navigation Items */}
-            <div className="space-y-1">
+            <nav className="space-y-1" aria-label="Main navigation">
               <NavItem to="/" icon={Brain} label="Home" />
               {isOnboarded && (
                 <>
-                  <NavItem to="/dashboard" icon={BarChart2} label="Dashboard" />
-                  <NavItem to="/profile" icon={User} label="Profile" />
-                  <NavItem to="/dashboard/chatbot" icon={MessageSquare} label="AI Assistant" />
+                  <NavItem to="../dashboard" icon={LayoutDashboard} label="Dashboard" />
+                  <NavItem to="../AI chat" icon={User} label="Profile" />
+                  <NavItem to="../onboarding" icon={MessageSquare} label="AI Assistant" />
+                  <NavItem to="/visualization" icon={Eye} label="Visualization" />
                   {isAdmin && (
-                    <NavItem to="/admin" icon={Shield} label="Admin Panel" />
+                    <>
+                      <NavItem to="/admin" icon={Shield} label="Admin Panel" />
+                      <NavItem to="/admin/metrics" icon={Gauge} label="Admin Metrics" />
+                      <NavItem to="/admin/security" icon={Lock} label="Security" />
+                    </>
                   )}
                 </>
               )}
-            </div>
+            </nav>
           </div>
 
           {/* Bottom Section */}
@@ -157,6 +173,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                   className={`p-2 rounded-full transition-all duration-200
                     ${darkMode ? 'hover:bg-gray-700/50 text-yellow-300' : 'hover:bg-blue-100 text-blue-600'}
                   `}
+                  aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 >
                   {darkMode ? (
                     <Sun className="h-5 w-5" />
@@ -171,6 +188,7 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
                     className={`flex items-center p-2 rounded-full transition-colors
                       ${darkMode ? 'hover:bg-gray-700/50 text-red-400' : 'hover:bg-blue-100 text-red-500'}
                     `}
+                    aria-label="Logout"
                   >
                     <LogOut className="h-5 w-5" />
                     {isSidebarOpen && (
@@ -189,4 +207,4 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
   );
 };
 
-export default Navbar;
+export default React.memo(Navbar);

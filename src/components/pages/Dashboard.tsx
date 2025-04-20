@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUser } from '../context/UserContext';
-import { BarChart2, PieChart, LineChart, Brain, ArrowUp, ArrowDown, Clock, Minimize, Maximize, Watch } from 'lucide-react';
+ 
+import { BarChart2, PieChart, LineChart, Brain, ArrowUp, ArrowDown, Clock, Minimize, Maximize } from 'lucide-react';
 import MoodChart from '../dashboard/MoodChart';
 import HealthInsightCard from '../dashboard/HealthInsightCard';
 import { ChartType, HealthInsight, Widget } from '../types/types';
@@ -11,7 +12,8 @@ import SocialMediaAnalysis from '../dashboard/SocialMediaAnalysis';
 import MusicSuggestions from '../dashboard/MusicSuggestions';
 import DeviceControl from '../dashboard/DeviceControl';
 import Chatbot from '../AI chat/Chatbot';
-import Watchs from '../3D simulation/3d Watch';
+import Watchs from '../3D simulation/SmartWatch';
+import Admin from '../Admin/Admin';
 
 // AI Configuration
 const AI_API_KEY = 'AIzaSyBy0KCb5kFziYZC5gXkFgB3mXEmMzsatTE';
@@ -507,6 +509,13 @@ const Dashboard: React.FC = () => {
                 <Watchs />
               </div>
             );   
+
+            case 'Admin':
+            return (
+              <div className="mb-6">
+                <Admin darkMode={false} />
+              </div>
+            ); 
         
       case 'social':
         return (
