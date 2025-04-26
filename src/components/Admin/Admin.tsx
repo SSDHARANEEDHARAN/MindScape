@@ -9,13 +9,13 @@ import {
   ConnectionStatus,
   HealthStatus,
   Diagnostic
-} from '../Admin/types';
-import { DeviceCard } from '../Admin/DeviceCard';
-import { MessageInput } from '../Admin/MessageInput';
-import { SignalFlow } from '../Admin/SignalFlow';
-import { DisplayPreview } from '../Admin/DisplayPreview';
-import { SystemConfig } from '../Admin/SystemConfig';
-import { Activity } from 'lucide-react';
+} from '../Admin/Components/types';
+import { DeviceCard } from '../Admin/Components/DeviceCard';
+import { MessageInput } from '../Admin/Components/MessageInput';
+import { SignalFlow } from '../Admin/Components/SignalFlow';
+import { DisplayPreview } from '../Admin/Components/DisplayPreview';
+import { SystemConfig } from '../Admin/Components/SystemConfig';
+import { Activity, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Fix NodeJS namespace error
@@ -36,7 +36,85 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
   const [messageMode, setMessageMode] = useState<MessageMode>('MANUAL');
   const [currentMessage, setCurrentMessage] = useState<string>('');
   const [connectedDevices, setConnectedDevices] = useState<SystemDevice[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>('');
+  const [passkey, setPasskey] = useState<string>('');
+  const [authError, setAuthError] = useState<string>('');
   const autoIntervalRef = useRef<NodeJS["Timeout"] | null>(null);
+
+  // Check for existing auth on initial load
+  useEffect(() => {
+    const savedAuth = localStorage.getItem('adminAuth');
+    if (savedAuth) {
+      const { isAuthenticated: savedAuthState, username: savedUsername } = JSON.parse(savedAuth);
+      if (savedAuthState && savedUsername === '12345') {
+        setIsAuthenticated(true);
+        setUsername(savedUsername);
+      }
+    }
+  }, []);
+
+  // Load saved state when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      const savedState = localStorage.getItem('adminState');
+      if (savedState) {
+        const {
+          manualMessages: savedManualMessages,
+          autoMessages: savedAutoMessages,
+          currentStage: savedCurrentStage,
+          messageMode: savedMessageMode,
+          currentMessage: savedCurrentMessage,
+          connectedDevices: savedConnectedDevices
+        } = JSON.parse(savedState);
+        
+        setManualMessages(savedManualMessages || []);
+        setAutoMessages(savedAutoMessages || []);
+        setCurrentStage(savedCurrentStage || 'WAITING');
+        setMessageMode(savedMessageMode || 'MANUAL');
+        setCurrentMessage(savedCurrentMessage || '');
+        setConnectedDevices(savedConnectedDevices || []);
+      }
+    }
+  }, [isAuthenticated]);
+
+  // Save state to localStorage when it changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      const stateToSave = {
+        manualMessages,
+        autoMessages,
+        currentStage,
+        messageMode,
+        currentMessage,
+        connectedDevices
+      };
+      localStorage.setItem('adminState', JSON.stringify(stateToSave));
+    }
+  }, [manualMessages, autoMessages, currentStage, messageMode, currentMessage, connectedDevices, isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === 'Admin' && passkey === 'Sathiya') {
+      setIsAuthenticated(true);
+      setAuthError('');
+      // Save auth state to localStorage
+      localStorage.setItem('adminAuth', JSON.stringify({
+        isAuthenticated: true,
+        username: 'Admin'
+      }));
+    } else {
+      setAuthError('Invalid username or passkey');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setUsername('');
+    setPasskey('');
+    // Clear auth from localStorage but keep the data
+    localStorage.removeItem('adminAuth');
+  };
 
   const simulateMessageFlow = async () => {
     const stages: SignalStage[] = ['WAITING', 'SENDING', 'RECEIVED', 'RETURNING', 'COMPLETE'];
@@ -96,7 +174,7 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
   }, [connectedDevices, messageMode]);
 
   useEffect(() => {
-    if (messageMode === 'AUTO') {
+    if (messageMode === 'AUTO' && isAuthenticated) {
       setAutoMessages([]);
       setCurrentStage('WAITING');
 
@@ -117,7 +195,7 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
         }
       };
     }
-  }, [messageMode, handleSendMessage]);
+  }, [messageMode, handleSendMessage, isAuthenticated]);
 
   const handleDeviceConnect = (device: SystemDevice) => {
     setConnectedDevices(prev => [...prev, {
@@ -159,6 +237,66 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
     } as Diagnostic,
   }));
 
+  if (!isAuthenticated) {
+    return (
+      <div className={darkMode ? 'dark' : ''}>
+        <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
+          >
+            <div className="flex items-center justify-center mb-6">
+              <Activity className="w-8 h-8 text-blue-500 mr-2" />
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                MindScape Admin
+              </h1>
+            </div>
+            <form onSubmit={handleLogin}>
+              <div className="mb-4">
+                <label htmlFor="username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+              <div className="mb-6">
+                <label htmlFor="passkey" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Passkey
+                </label>
+                <input
+                  id="passkey"
+                  type="password"
+                  value={passkey}
+                  onChange={(e) => setPasskey(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
+              {authError && (
+                <div className="mb-4 text-sm text-red-600 dark:text-red-400">
+                  {authError}
+                </div>
+              )}
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Login
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={darkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -171,6 +309,13 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
                   MindScape Device Management
                 </h1>
               </div>
+              <button
+                onClick={handleLogout}
+                className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                <LogOut className="w-4 h-4 mr-1" />
+                Logout
+              </button>
             </div>
           </div>
         </nav>

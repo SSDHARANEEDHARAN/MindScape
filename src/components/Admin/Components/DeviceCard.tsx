@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Device } from '../types';
+import { Device } from './types';
 import { Wifi, WifiOff, AlertTriangle, Check, ChevronDown, ChevronUp, Terminal, Activity, Battery, Thermometer } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
