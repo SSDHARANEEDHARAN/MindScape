@@ -5,10 +5,9 @@ import {
   SignalStage,
   MessageMode,
   SystemDevice,
+  Diagnostic,
   DeviceType,
-  ConnectionStatus,
-  HealthStatus,
-  Diagnostic
+  ConnectionType
 } from '../Admin/Components/types';
 import { DeviceCard } from '../Admin/Components/DeviceCard';
 import { MessageInput } from '../Admin/Components/MessageInput';
@@ -18,15 +17,42 @@ import { SystemConfig } from '../Admin/Components/SystemConfig';
 import { Activity, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Fix NodeJS namespace error
-declare global {
-  interface NodeJS {
-    Timeout: ReturnType<typeof setTimeout>;
-  }
+type HealthStatus = 'GOOD' | 'POOR_SIGNAL' | 'LOW_BATTERY';
+type DeviceStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR';
+
+interface ConnectionInfo {
+  type: ConnectionType;
+  signalStrength: number;
+  batteryLevel: number;
+  lastUpdated: string;
+}
+
+// Create a mapping between DeviceType and ConnectionType
+type DeviceConnectionMap = Record<DeviceType, ConnectionType>;
+
+const deviceConnectionMap: DeviceConnectionMap = {
+  DISPLAY: 'USB',
+  ROUTER: 'WIFI',
+  SENSOR: 'BLUETOOTH',
+  CONTROLLER: 'BLUETOOTH'
+};
+
+// Enhanced device interface
+interface EnhancedSystemDevice extends SystemDevice {
+  connection: ConnectionInfo;
+  health: HealthStatus;
+  status: DeviceStatus;
 }
 
 interface AdminProps {
   darkMode: boolean;
+}
+
+interface UserAuth {
+  username: string;
+  isAdmin: boolean;
+  isSathiya: boolean;
+  isBuvana: boolean;
 }
 
 const Admin: React.FC<AdminProps> = ({ darkMode }) => {
@@ -35,28 +61,29 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
   const [currentStage, setCurrentStage] = useState<SignalStage>('WAITING');
   const [messageMode, setMessageMode] = useState<MessageMode>('MANUAL');
   const [currentMessage, setCurrentMessage] = useState<string>('');
-  const [connectedDevices, setConnectedDevices] = useState<SystemDevice[]>([]);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [connectedDevices, setConnectedDevices] = useState<EnhancedSystemDevice[]>([]);
+  const [auth, setAuth] = useState<UserAuth | null>(null);
   const [username, setUsername] = useState<string>('');
   const [passkey, setPasskey] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
-  const autoIntervalRef = useRef<NodeJS["Timeout"] | null>(null);
+  const [showInitialMessage, setShowInitialMessage] = useState(false);
+  const [initialMessageShown, setInitialMessageShown] = useState(false);
+  const autoIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialMessageTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const threeMinuteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Check for existing auth on initial load
   useEffect(() => {
     const savedAuth = localStorage.getItem('adminAuth');
     if (savedAuth) {
-      const { isAuthenticated: savedAuthState, username: savedUsername } = JSON.parse(savedAuth);
-      if (savedAuthState && savedUsername === '12345') {
-        setIsAuthenticated(true);
-        setUsername(savedUsername);
-      }
+      const parsedAuth = JSON.parse(savedAuth);
+      setAuth(parsedAuth);
     }
   }, []);
 
   // Load saved state when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (auth) {
       const savedState = localStorage.getItem('adminState');
       if (savedState) {
         const {
@@ -76,11 +103,39 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
         setConnectedDevices(savedConnectedDevices || []);
       }
     }
-  }, [isAuthenticated]);
+  }, [auth]);
+
+  // Handle initial message and 3-minute timer
+  useEffect(() => {
+    if (auth) {
+      // Show initial message for 3 seconds
+      setShowInitialMessage(true);
+      setCurrentMessage("MindScape Social Media Health Analyses & Wearable Device Powered by Sathiya");
+      
+      initialMessageTimerRef.current = setTimeout(() => {
+        setShowInitialMessage(false);
+        setCurrentMessage('');
+        setInitialMessageShown(true);
+      }, 3000);
+
+      // Set up 3-minute timer for special message
+      threeMinuteTimerRef.current = setTimeout(() => {
+        setCurrentMessage("MindScape Social Media Health Analyses & Wearable Device Powered by Sathiya");
+        setTimeout(() => {
+          setCurrentMessage('');
+        }, 3000);
+      }, 180000);
+
+      return () => {
+        if (initialMessageTimerRef.current) clearTimeout(initialMessageTimerRef.current);
+        if (threeMinuteTimerRef.current) clearTimeout(threeMinuteTimerRef.current);
+      };
+    }
+  }, [auth]);
 
   // Save state to localStorage when it changes
   useEffect(() => {
-    if (isAuthenticated) {
+    if (auth) {
       const stateToSave = {
         manualMessages,
         autoMessages,
@@ -91,28 +146,51 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
       };
       localStorage.setItem('adminState', JSON.stringify(stateToSave));
     }
-  }, [manualMessages, autoMessages, currentStage, messageMode, currentMessage, connectedDevices, isAuthenticated]);
+  }, [manualMessages, autoMessages, currentStage, messageMode, currentMessage, connectedDevices, auth]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === 'Admin' && passkey === 'Sathiya') {
-      setIsAuthenticated(true);
-      setAuthError('');
-      // Save auth state to localStorage
-      localStorage.setItem('adminAuth', JSON.stringify({
-        isAuthenticated: true,
-        username: 'Admin'
-      }));
-    } else {
+    
+    // Clear any previous error
+    setAuthError('');
+    
+    // Check credentials
+    let authenticatedUser: UserAuth | null = null;
+    
+    if (username === 'Admin' && passkey === 'sathiya') {
+      authenticatedUser = {
+        username: 'Sathiya',
+        isAdmin: true,
+        isSathiya: false,
+        isBuvana: false
+      };
+    } 
+    else if (username === 'Admin' && passkey === 'buvana') {
+      authenticatedUser = {
+        username: 'Admin',
+        isAdmin: false,
+        isSathiya: false,
+        isBuvana: true
+      };
+    } 
+    else {
       setAuthError('Invalid username or passkey');
+      return;
     }
+    
+    setAuth(authenticatedUser);
+    localStorage.setItem('adminAuth', JSON.stringify(authenticatedUser));
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    setAuth(null);
     setUsername('');
     setPasskey('');
-    // Clear auth from localStorage but keep the data
+    setShowInitialMessage(false);
+    setInitialMessageShown(false);
+    if (initialMessageTimerRef.current) clearTimeout(initialMessageTimerRef.current);
+    if (threeMinuteTimerRef.current) clearTimeout(threeMinuteTimerRef.current);
+    if (autoIntervalRef.current) clearInterval(autoIntervalRef.current);
     localStorage.removeItem('adminAuth');
   };
 
@@ -125,6 +203,8 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
   };
 
   const handleSendMessage = useCallback(async (content: string) => {
+    if (showInitialMessage || messageMode === 'AUTO') return;
+    
     const newMessage: Message = {
       id: Date.now().toString(),
       content,
@@ -138,56 +218,72 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
       return updated.slice(-3);
     };
 
-    if (messageMode === 'MANUAL') {
-      setManualMessages(updateMessages);
-    } else {
-      setAutoMessages(updateMessages);
-    }
-
+    setManualMessages(updateMessages);
     setCurrentMessage(content);
 
     try {
       await simulateMessageFlow();
       const updateStatus = (msgs: Message[]): Message[] =>
         msgs.map(msg =>
-          msg.id === newMessage.id ? { ...msg, status: 'SENT' as const } : msg
+          msg.id === newMessage.id ? { ...msg, status: 'SENT' } : msg
         );
 
-      if (messageMode === 'MANUAL') {
-        setManualMessages(updateStatus);
-      } else {
-        setAutoMessages(updateStatus);
-      }
+      setManualMessages(updateStatus);
     } catch (error) {
       console.error('Failed to send message:', error);
       const updateStatus = (msgs: Message[]): Message[] =>
         msgs.map(msg =>
-          msg.id === newMessage.id ? { ...msg, status: 'FAILED' as const } : msg
+          msg.id === newMessage.id ? { ...msg, status: 'FAILED' } : msg
         );
 
-      if (messageMode === 'MANUAL') {
-        setManualMessages(updateStatus);
-      } else {
-        setAutoMessages(updateStatus);
-      }
+      setManualMessages(updateStatus);
     }
-  }, [connectedDevices, messageMode]);
+  }, [connectedDevices, messageMode, showInitialMessage]);
 
   useEffect(() => {
-    if (messageMode === 'AUTO' && isAuthenticated) {
+    if (messageMode === 'AUTO' && auth && initialMessageShown) {
       setAutoMessages([]);
       setCurrentStage('WAITING');
 
       autoIntervalRef.current = setInterval(() => {
         const mentalHealthTips = [
-          "Take a deep breath and practice mindfulness",
-          "Stay hydrated and take breaks",
-          "Connect with loved ones",
-          "Practice gratitude today"
+          "Stay hydrated! Drink water regularly.",
+          "MindScape: Your mental health matters",
+          "Take a 5-minute break and stretch",
+          "MindScape: Practice deep breathing",
+          "Remember to stand up and move around",
+          "MindScape: Track your mood today",
+          "MindScape: Your feelings are valid",
+          "Pause and check in with yourself",
+          "MindScape: One step at a time is still progress",
+          "Don't forget to smile—it boosts your mood",
+          "MindScape: You deserve rest, not guilt",
+          "Take a moment to be proud of how far you've come",
+          "MindScape: Reflect on something you're grateful for",
+          "Deep breath in… now slowly breathe out",
+          "MindScape: You are more than your bad days",
+          "Step outside, get a bit of fresh air",
+          "MindScape: It's okay to ask for help",
+          "Drink a glass of water and reset your focus",
+          "MindScape: Celebrate small wins today",
+          "Stretch your arms, unclench your jaw",
+          "MindScape: Let go of what you can't control",
+          "Put on your favorite song and vibe for a minute",
+          "MindScape: Check in—how's your mind feeling?",
+          "Look away from the screen and relax your eyes",
+          "MindScape: Rest is productive too",
+          "Keep going. You're doing better than you think"
         ];
         const randomTip = mentalHealthTips[Math.floor(Math.random() * mentalHealthTips.length)];
-        handleSendMessage(randomTip);
-      }, 10000);
+        setCurrentMessage(randomTip);
+        setAutoMessages(prev => [...prev.slice(-2), {
+          id: Date.now().toString(),
+          content: randomTip,
+          timestamp: new Date().toISOString(),
+          status: 'SENT',
+          deviceId: connectedDevices[0]?.id || '',
+        }]);
+      }, 180000);
 
       return () => {
         if (autoIntervalRef.current) {
@@ -195,22 +291,77 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
         }
       };
     }
-  }, [messageMode, handleSendMessage, isAuthenticated]);
+  }, [messageMode, auth, initialMessageShown, connectedDevices]);
+
+  // Simulate real-time device status updates
+  useEffect(() => {
+    if (!auth || connectedDevices.length === 0) return;
+
+    const updateInterval = setInterval(() => {
+      setConnectedDevices(prevDevices => 
+        prevDevices.map(device => {
+          const newSignalStrength = simulateSignalStrength(device.connection.type);
+          const newBatteryLevel = simulateBatteryDrain(device.connection.batteryLevel);
+          
+          return {
+            ...device,
+            connection: {
+              ...device.connection,
+              signalStrength: newSignalStrength,
+              batteryLevel: newBatteryLevel,
+              lastUpdated: new Date().toISOString()
+            },
+            health: newBatteryLevel < 20 ? 'LOW_BATTERY' : 
+                   newSignalStrength < 50 ? 'POOR_SIGNAL' : 'GOOD'
+          };
+        })
+      );
+    }, 5000);
+
+    return () => clearInterval(updateInterval);
+  }, [auth, connectedDevices.length]);
+
+  const simulateSignalStrength = (type: ConnectionType): number => {
+    if (type === 'USB') return 95 + Math.floor(Math.random() * 5);
+    if (type === 'BLUETOOTH') return 70 + Math.floor(Math.random() * 25);
+    return 80 + Math.floor(Math.random() * 15);
+  };
+
+  const simulateBatteryDrain = (currentLevel: number): number => {
+    return Math.max(0, currentLevel - (Math.random() * 0.5));
+  };
 
   const handleDeviceConnect = (device: SystemDevice) => {
-    setConnectedDevices(prev => [...prev, {
+    const connectionType = deviceConnectionMap[device.type];
+
+    const enhancedDevice: EnhancedSystemDevice = {
       ...device,
-      status: 'ACTIVE' as ConnectionStatus
-    }]);
+      status: 'ACTIVE',
+      connection: {
+        type: connectionType,
+        signalStrength: simulateSignalStrength(connectionType),
+        batteryLevel: 80 + Math.floor(Math.random() * 20),
+        lastUpdated: new Date().toISOString()
+      },
+      health: 'GOOD'
+    };
+
+    setConnectedDevices(prev => [...prev, enhancedDevice]);
   };
 
   const handleModeSwitch = () => {
     setMessageMode(prev => {
       const newMode: MessageMode = prev === 'AUTO' ? 'MANUAL' : 'AUTO';
-      if (newMode === 'MANUAL' && autoIntervalRef.current) {
+      
+      // Clear any existing auto interval
+      if (autoIntervalRef.current) {
         clearInterval(autoIntervalRef.current);
+        autoIntervalRef.current = null;
       }
+      
+      // Reset stage when switching modes
       setCurrentStage('WAITING');
+      
       return newMode;
     });
   };
@@ -221,23 +372,25 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
     id: dev.id,
     name: dev.name,
     lastResponse: new Date().toISOString(),
-    signalStrength: 100,
+    lastSeen: new Date().toISOString(),
+    signalStrength: dev.connection.signalStrength,
     configurationComplete: true,
     currentStage,
     mode: messageMode,
-    type: dev.type as DeviceType,
+    type: dev.type,
     status: dev.status,
-    health: 'GOOD' as HealthStatus,
+    health: dev.health,
     messageMode: messageMode,
+    connectionType: dev.connection.type,
     logs: [],
     diagnostics: {
       uptime: '5 hours',
-      batteryLevel: 95,
+      batteryLevel: dev.connection.batteryLevel,
       temperature: 30
     } as Diagnostic,
   }));
 
-  if (!isAuthenticated) {
+  if (!auth) {
     return (
       <div className={darkMode ? 'dark' : ''}>
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
@@ -309,13 +462,18 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
                   MindScape Device Management
                 </h1>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                <LogOut className="w-4 h-4 mr-1" />
-                Logout
-              </button>
+              <div className="flex items-center space-x-4">
+                <span className="text-sm dark:text-white">
+                  Logged in as: {auth.username} {auth.isAdmin ? '(Admin)' : auth.isSathiya ? '(Sathiya)' : '(Buvana)'}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                >
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Logout
+                </button>
+              </div>
             </div>
           </div>
         </nav>
@@ -376,8 +534,13 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
                 <h2 className="text-lg font-semibold mb-4 dark:text-white">Send Message</h2>
                 <MessageInput
                   onSendMessage={handleSendMessage}
-                  disabled={messageMode === 'AUTO' || (currentStage !== 'WAITING' && currentStage !== 'COMPLETE')}
+                  disabled={showInitialMessage || messageMode === 'AUTO' || (currentStage !== 'WAITING' && currentStage !== 'COMPLETE')}
                 />
+                {messageMode === 'AUTO' && (
+                  <div className="mt-2 text-sm text-yellow-600 dark:text-yellow-400">
+                    Auto mode is active - manual messages are disabled
+                  </div>
+                )}
                 <div className="mt-4 space-y-2">
                   <AnimatePresence>
                     {currentMessages.map(message => (
