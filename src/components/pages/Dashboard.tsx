@@ -13,9 +13,16 @@ import DeviceControl from '../dashboard/DeviceControl';
 import Chatbot from '../AI chat/Chatbot';
 import Watchs from '../3D simulation/SmartWatch';
 import Admin from '../Admin/Admin';
+import HealthMetrics from '../dashboard/HealthMetrics';
+
+interface HealthInsight {
+  category: string;
+  score: number;
+  recommendation: string;
+}
 
 const Dashboard: React.FC = () => {
-  const { userData, moodData, healthInsights } = useUser();
+  const { userData, moodData } = useUser();
   const [selectedChart, setSelectedChart] = useState<ChartType>('bar');
   const [activeTab, setActiveTab] = useState('overview');
   const [widgets, setWidgets] = useState<Widget[]>([
@@ -25,8 +32,33 @@ const Dashboard: React.FC = () => {
     { id: 'remedies', title: 'Personalized Remedies', isMinimized: false, position: { x: 0, y: 0 } },
     { id: 'mood-forecast', title: 'Mood Forecast', isMinimized: false, position: { x: 0, y: 0 } },
     { id: 'music-suggestions', title: 'Music Suggestions', isMinimized: false, position: { x: 0, y: 0 } },
-    { id: 'device-control', title: 'Device Control', isMinimized: false, position: { x: 0, y: 0 } }
+    { id: 'device-control', title: 'Device Control', isMinimized: false, position: { x: 0, y: 0 } },
+    { id: 'health-metrics', title: 'Health Metrics', isMinimized: false, position: { x: 0, y: 0 } }
   ]);
+
+  // Mock health insights data
+  const healthInsights: HealthInsight[] = [
+    {
+      category: 'Mental Wellbeing',
+      score: Math.round(Math.random() * 30 + 60),
+      recommendation: 'Practice mindfulness for 10 minutes daily'
+    },
+    {
+      category: 'Sleep Quality',
+      score: Math.round(Math.random() * 40 + 50),
+      recommendation: 'Maintain consistent sleep schedule'
+    },
+    {
+      category: 'Physical Activity',
+      score: Math.round(Math.random() * 50 + 40),
+      recommendation: 'Aim for 30 minutes of exercise daily'
+    },
+    {
+      category: 'Nutrition',
+      score: Math.round(Math.random() * 40 + 50),
+      recommendation: 'Increase vegetable and water intake'
+    }
+  ];
 
   const toggleWidgetMinimize = (id: string) => {
     setWidgets(prev => 
@@ -62,6 +94,7 @@ const Dashboard: React.FC = () => {
       <div className="flex justify-between items-center mb-4 cursor-move">
         <h2 className="text-lg font-semibold flex items-center">
           {id === 'mood-analysis' && <Brain className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />}
+          {id === 'health-insights' && <Brain className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />}
           {title}
         </h2>
         <div className="flex space-x-1">
@@ -101,47 +134,45 @@ const Dashboard: React.FC = () => {
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
             {renderWidgetHeader(id, 'Mood Analysis')}
-            {!widget.isMinimized && (
-              <>
-                <div className="flex space-x-2 mb-4">
-                  {renderChartIcon('bar', BarChart2)}
-                  {renderChartIcon('pie', PieChart)}
-                  {renderChartIcon('line', LineChart)}
+            <>
+              <div className="flex space-x-2 mb-4">
+                {renderChartIcon('bar', BarChart2)}
+                {renderChartIcon('pie', PieChart)}
+                {renderChartIcon('line', LineChart)}
+              </div>
+              <MoodChart 
+                moodData={moodData} 
+                chartType={selectedChart} 
+                onChartTypeChange={handleChartTypeChange}
+                interactive={true}
+              />
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg text-center">
+                  <span className="block text-sm text-green-800 dark:text-green-200">Happy</span>
+                  <span className="font-bold text-green-600 dark:text-green-300">
+                    {Math.round(Math.random() * 50 + 30)}%
+                  </span>
                 </div>
-                <MoodChart 
-                  moodData={moodData} 
-                  chartType={selectedChart} 
-                  onChartTypeChange={handleChartTypeChange}
-                  interactive={true}
-                />
-                <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg text-center">
-                    <span className="block text-sm text-green-800 dark:text-green-200">Happy</span>
-                    <span className="font-bold text-green-600 dark:text-green-300">
-                      {Math.round(Math.random() * 50 + 30)}%
-                    </span>
-                  </div>
-                  <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-center">
-                    <span className="block text-sm text-blue-800 dark:text-blue-200">Sad</span>
-                    <span className="font-bold text-blue-600 dark:text-blue-300">
-                      {Math.round(Math.random() * 20 + 5)}%
-                    </span>
-                  </div>
-                  <div className="bg-red-100 dark:bg-red-900 p-2 rounded-lg text-center">
-                    <span className="block text-sm text-red-800 dark:text-red-200">Stressed</span>
-                    <span className="font-bold text-red-600 dark:text-red-300">
-                      {Math.round(Math.random() * 30 + 10)}%
-                    </span>
-                  </div>
-                  <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-center">
-                    <span className="block text-sm text-gray-800 dark:text-gray-200">Neutral</span>
-                    <span className="font-bold text-gray-600 dark:text-gray-300">
-                      {Math.round(Math.random() * 40 + 20)}%
-                    </span>
-                  </div>
+                <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-center">
+                  <span className="block text-sm text-blue-800 dark:text-blue-200">Sad</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-300">
+                    {Math.round(Math.random() * 20 + 5)}%
+                  </span>
                 </div>
-              </>
-            )}
+                <div className="bg-red-100 dark:bg-red-900 p-2 rounded-lg text-center">
+                  <span className="block text-sm text-red-800 dark:text-red-200">Stressed</span>
+                  <span className="font-bold text-red-600 dark:text-red-300">
+                    {Math.round(Math.random() * 30 + 10)}%
+                  </span>
+                </div>
+                <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-center">
+                  <span className="block text-sm text-gray-800 dark:text-gray-200">Neutral</span>
+                  <span className="font-bold text-gray-600 dark:text-gray-300">
+                    {Math.round(Math.random() * 40 + 20)}%
+                  </span>
+                </div>
+              </div>
+            </>
           </div>
         );
       
@@ -149,13 +180,15 @@ const Dashboard: React.FC = () => {
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
             {renderWidgetHeader(id, 'Health Insights')}
-            {!widget.isMinimized && (
-              <div className="space-y-3">
-                {healthInsights.map((insight, index) => (
-                  <HealthInsightCard key={index} insight={insight} />
-                ))}
-              </div>
-            )}
+            <HealthInsightCard />
+          </div>
+        );
+      
+      case 'health-metrics':
+        return (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
+            {renderWidgetHeader(id, 'Health Metrics')}
+            <HealthMetrics />
           </div>
         );
       
@@ -170,22 +203,20 @@ const Dashboard: React.FC = () => {
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
             {renderWidgetHeader(id, 'Personalized Remedies')}
-            {!widget.isMinimized && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-                  <h3 className="font-medium text-green-800 dark:text-green-300 mb-2">Diet Suggestions</h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    Based on your food habits, try incorporating more whole grains and proteins in your breakfast.
-                  </p>
-                </div>
-                <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                  <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Sleep Improvement</h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    Try to maintain a consistent sleep schedule. Aim for 7-8 hours of sleep each night.
-                  </p>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
+                <h3 className="font-medium text-green-800 dark:text-green-300 mb-2">Diet Suggestions</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Based on your food habits, try incorporating more whole grains and proteins in your breakfast.
+                </p>
               </div>
-            )}
+              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
+                <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Sleep Improvement</h3>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  Try to maintain a consistent sleep schedule. Aim for 7-8 hours of sleep each night.
+                </p>
+              </div>
+            </div>
           </div>
         );
       
@@ -193,7 +224,7 @@ const Dashboard: React.FC = () => {
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
             {renderWidgetHeader(id, 'Mood Forecast')}
-            {!widget.isMinimized && <MoodForecast />}
+            <MoodForecast />
           </div>
         );
       
@@ -229,7 +260,7 @@ const Dashboard: React.FC = () => {
                 {renderWidget('mood-forecast')}
               </div>
               <div>
-                {renderWidget('health-insights')}
+                {renderWidget('health-metrics')}
                 {renderWidget('music-suggestions')}
               </div>
             </div>
@@ -310,32 +341,11 @@ const Dashboard: React.FC = () => {
         return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
-                <h2 className="text-lg font-semibold mb-4">Health Metrics</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  {healthInsights.map((insight) => (
-                    <div key={insight.category} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm text-gray-500 dark:text-gray-400">{insight.category}</span>
-                        <span className="text-sm font-medium">{insight.score}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2.5">
-                        <div 
-                          className={`h-2.5 rounded-full ${
-                            insight.score > 70 ? 'bg-green-600' : 
-                            insight.score > 40 ? 'bg-yellow-500' : 'bg-red-600'
-                          }`} 
-                          style={{ width: `${insight.score}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {renderWidget('health-insights')}
               {renderWidget('remedies')}
             </div>
             <div>
-              {renderWidget('health-insights')}
+              {renderWidget('health-metrics')}
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
                 <h2 className="text-lg font-semibold mb-4">Smart Notifications</h2>
                 <div className="space-y-3">

@@ -21,7 +21,13 @@ interface NavItemProps {
 
 const clearStoredMessages = (userId: string | undefined) => {
   if (userId) {
+    // Clear chat messages
     localStorage.removeItem(`mindscape_chat_${userId}`);
+    // Clear mood analysis cache
+    localStorage.removeItem(`mindscape_mood_analysis_${userId}`);
+    localStorage.removeItem(`mindscape_mood_nlm_${userId}`);
+    localStorage.removeItem(`mindscape_mood_dataset_${userId}`);
+    // Clear any other user-specific cache
   }
 };
 
