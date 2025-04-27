@@ -157,17 +157,17 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
     // Check credentials
     let authenticatedUser: UserAuth | null = null;
     
-    if (username === 'Admin' && passkey === 'sathiya') {
+    if (username === 'Admin' && passkey === 'Trial') {
       authenticatedUser = {
-        username: 'Sathiya',
+        username: 'Trial-Integrity',
         isAdmin: true,
         isSathiya: false,
         isBuvana: false
       };
     } 
-    else if (username === 'Admin' && passkey === 'buvana') {
+    else if (username === 'Admin' && passkey === 'IOT') {
       authenticatedUser = {
-        username: 'Admin',
+        username: 'IoT Wireless Management',
         isAdmin: false,
         isSathiya: false,
         isBuvana: true
@@ -464,7 +464,7 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
               </div>
               <div className="flex items-center space-x-4">
                 <span className="text-sm dark:text-white">
-                  Logged in as: {auth.username} {auth.isAdmin ? '(Admin)' : auth.isSathiya ? '(Sathiya)' : '(Buvana)'}
+                  Logged in as: {auth.username} {auth.isAdmin ? '(Admin)' :[]}
                 </span>
                 <button
                   onClick={handleLogout}

@@ -86,7 +86,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
   const data = moodData.length > 0 ? moodData : defaultData;
 
   const timeSeriesData = [
-    { name: 'Mon', happy: 4, sad: 10, stressed: 20, neutral: 30, aiHappy: 35, aiSad: 15, aiStressed: 25, aiNeutral: 25 },
+    { name: 'Mon', happy: 45, sad: 10, stressed: 20, neutral: 30, aiHappy: 35, aiSad: 15, aiStressed: 25, aiNeutral: 25 },
     { name: 'Tue', happy: 45, sad: 15, stressed: 15, neutral: 25, aiHappy: 40, aiSad: 20, aiStressed: 20, aiNeutral: 20 },
     { name: 'Wed', happy: 30, sad: 20, stressed: 30, neutral: 20, aiHappy: 35, aiSad: 25, aiStressed: 25, aiNeutral: 15 },
     { name: 'Thu', happy: 50, sad: 10, stressed: 10, neutral: 30, aiHappy: 45, aiSad: 15, aiStressed: 15, aiNeutral: 25 },

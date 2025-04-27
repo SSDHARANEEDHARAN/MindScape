@@ -7,7 +7,7 @@ interface DeviceIntegrationStepProps {
   updateUserData: (data: Partial<UserData>) => void;
   completeOnboarding: () => void;
   prevStep: () => void;
-  darkMode: boolean; // ✅ added darkMode prop
+  darkMode: boolean;
 }
 
 const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
@@ -22,11 +22,14 @@ const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
     completeOnboarding();
   };
 
+  // Check if at least one device is selected
+  const atLeastOneDeviceSelected = userData.hasLoraModule || userData.hasEsp32;
+
   return (
     <div className={`w-full max-w-md mx-auto ${darkMode ? 'text-white' : 'text-gray-900'}`}>
       <h2 className="text-2xl font-bold mb-6 text-center">Device Integration</h2>
       <p className={`text-center mb-6 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-        Connect your devices for better health tracking
+        Connect at least one device for health tracking
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -78,11 +81,11 @@ const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
           </div>
         </div>
 
-        {/* Google Sync */}
+        {/* Google Sync (optional) */}
         <div className={`p-4 rounded-lg shadow-sm border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
           <div className="flex items-center">
             <Wifi className="w-5 h-5 mr-2 text-indigo-600" />
-            <span className="font-medium">Google Sync</span>
+            <span className="font-medium">Google Sync (Optional)</span>
           </div>
           <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
             Securely back up your health data to Google Cloud
@@ -114,7 +117,14 @@ const DeviceIntegrationStep: React.FC<DeviceIntegrationStepProps> = ({
           </button>
           <button
             type="submit"
-            className="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+            disabled={!atLeastOneDeviceSelected}
+            className={`w-1/2 font-medium py-2 px-4 rounded-lg transition duration-200 ${
+              atLeastOneDeviceSelected
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                : darkMode
+                  ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
           >
             Complete Setup
           </button>

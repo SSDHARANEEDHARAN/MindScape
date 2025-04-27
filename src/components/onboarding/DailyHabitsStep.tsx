@@ -7,7 +7,7 @@ interface DailyHabitsStepProps {
   updateUserData: (data: Partial<UserData>) => void;
   nextStep: () => void;
   prevStep: () => void;
-  darkMode: boolean; // ✅ Integrated here
+  darkMode: boolean;
 }
 
 const eveningFoodOptions = [
@@ -25,7 +25,7 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
   updateUserData,
   nextStep,
   prevStep,
-  darkMode, // ✅ Used in component
+  darkMode,
 }) => {
   const [disabilityResponse, setDisabilityResponse] = useState<string>('');
   const [healthConditionResponse, setHealthConditionResponse] = useState<string>('');
@@ -196,7 +196,6 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
           >
             <option value="">Select an option</option>
             <option value="Unwell">Unwell</option>
-            <option value="Yes, I do.">Yes, I do.</option>
             <option value="No, I do not.">No, I do not.</option>
             <option value="I prefer not to say.">I prefer not to say.</option>
           </select>

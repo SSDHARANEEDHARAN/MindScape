@@ -19,6 +19,12 @@ interface NavItemProps {
   isActive?: boolean;
 }
 
+const clearStoredMessages = (userId: string | undefined) => {
+  if (userId) {
+    localStorage.removeItem(`mindscape_chat_${userId}`);
+  }
+};
+
 const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
   const { isOnboarded, userData, logout } = useUser();
   const isAdmin = userData?.role === 'admin';
@@ -27,10 +33,11 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
   const navigate = useNavigate();
 
   const handleLogout = useCallback(() => {
+    clearStoredMessages(userData?.id);
     logout();
     navigate('/', { replace: true });
     window.location.reload();
-  }, [logout, navigate]);
+  }, [logout, navigate, userData?.id]);
 
   const NavItem: React.FC<NavItemProps> = React.memo(({ 
     to, 
@@ -143,12 +150,17 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
             {/* Navigation Items */}
             <nav className="space-y-1" aria-label="Main navigation">
-              <NavItem to="/" icon={Brain} label="Home" />
+              {/* Show Home ONLY when logged out */}
+              {!isOnboarded && (
+                <NavItem to="/" icon={Brain} label="Home" />
+              )}
+              
+              {/* Show these only when logged in */}
               {isOnboarded && (
                 <>
-                  <NavItem to="../dashboard" icon={LayoutDashboard} label="Dashboard" />
-                  <NavItem to="../AI chat" icon={User} label="Profile" />
-                  <NavItem to="../onboarding" icon={MessageSquare} label="AI Assistant" />
+                  <NavItem to="/dashboard" icon={LayoutDashboard} label="Dashboard" />
+                  <NavItem to="/profile" icon={User} label="Profile" />
+                  <NavItem to="/chat" icon={MessageSquare} label="AI Chat" />
                   <NavItem to="/visualization" icon={Eye} label="Visualization" />
                   {isAdmin && (
                     <>
@@ -164,7 +176,9 @@ const Navbar: React.FC<NavbarProps> = ({ darkMode, toggleDarkMode }) => {
 
           {/* Bottom Section */}
           <div className="space-y-4">
-            <NavItem to="/settings" icon={Settings} label="Settings" />
+            {isOnboarded && (
+              <NavItem to="/settings" icon={Settings} label="Settings" />
+            )}
             
             <div className={`pt-4 ${darkMode ? 'border-t border-gray-700/50' : 'border-t border-blue-200/50'}`}>
               <div className="flex items-center justify-between mb-4 px-2">
