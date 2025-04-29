@@ -14,6 +14,7 @@ import Chatbot from '../AI chat/Chatbot';
 import Watchs from '../3D simulation/SmartWatch';
 import Admin from '../Admin/Admin';
 import HealthMetrics from '../dashboard/HealthMetrics';
+import PersonalizedRemedies from '../dashboard/PersonalizedRemedies';
 
 interface HealthInsight {
   category: string;
@@ -200,25 +201,7 @@ const Dashboard: React.FC = () => {
         );
       
       case 'remedies':
-        return (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
-            {renderWidgetHeader(id, 'Personalized Remedies')}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-lg">
-                <h3 className="font-medium text-green-800 dark:text-green-300 mb-2">Diet Suggestions</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Based on your food habits, try incorporating more whole grains and proteins in your breakfast.
-                </p>
-              </div>
-              <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg">
-                <h3 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Sleep Improvement</h3>
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  Try to maintain a consistent sleep schedule. Aim for 7-8 hours of sleep each night.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
+        return <PersonalizedRemedies />;
       
       case 'mood-forecast':
         return (
