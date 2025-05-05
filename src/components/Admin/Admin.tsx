@@ -110,7 +110,7 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
     if (auth) {
       // Show initial message for 3 seconds
       setShowInitialMessage(true);
-      setCurrentMessage("MindScape Social Media Health Analyses & Wearable Device Powered by Sathiya");
+      setCurrentMessage("MindScape Social Media Health Analyses with  Wearable Device Powered");
       
       initialMessageTimerRef.current = setTimeout(() => {
         setShowInitialMessage(false);

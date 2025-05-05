@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   Battery, Power, Zap,
   Heart, Music, ChevronLeft, Play, Pause, SkipBack, SkipForward,
@@ -62,7 +62,11 @@ declare global {
   }
 }
 
-const SmartWatch = () => {
+interface SmartWatchProps {
+  darkMode: boolean;
+}
+
+const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
   // Core state
   const [time, setTime] = useState(new Date());
   const [isPoweredOn, setIsPoweredOn] = useState(true);
@@ -824,26 +828,26 @@ const SmartWatch = () => {
       {hasUnreadNotifications ? (
         <BellDot
           size={14}
-          className="text-red-500 cursor-pointer"
+          className={`${darkMode ? 'text-red-400' : 'text-red-500'} cursor-pointer`}
         />
       ) : (
         <Bell
           size={14}
-          className="text-gray-400 cursor-pointer"
+          className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} cursor-pointer`}
         />
       )}
       {hasUnreadNotifications && (
-        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white"></div>
+        <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 ${darkMode ? 'bg-red-400' : 'bg-red-500'} rounded-full border ${darkMode ? 'border-gray-800' : 'border-white'}`}></div>
       )}
     </div>
-  ), [hasUnreadNotifications, markAllAsRead]);
+  ), [hasUnreadNotifications, markAllAsRead, darkMode]);
 
   // Notification Popup component
   const NotificationPopup = useCallback(() => {
     if (!showNotificationPopup || !activePopupNotification) return null;
 
     return (
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-xl z-50 w-64">
+      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${darkMode ?  'dark:bg-white':'bg-gray-800'} p-4 rounded-lg shadow-xl z-50 w-64`}>
         <div className="flex items-start gap-2">
           {activePopupNotification.type === 'health' ? (
             <Heart size={20} className="text-red-500 mt-0.5" />
@@ -855,61 +859,61 @@ const SmartWatch = () => {
             <Bell size={20} className="text-blue-500 mt-0.5" />
           )}
           <div className="flex-1">
-            <p className="font-medium">{activePopupNotification.message}</p>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{activePopupNotification.message}</p>
+            <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
               {formatIndianTime(activePopupNotification.timestamp)}
             </p>
           </div>
           <button
             onClick={() => setShowNotificationPopup(false)}
-            className="text-gray-400 hover:text-gray-600"
+            className={`${darkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}`}
           >
             <X size={16} />
           </button>
         </div>
       </div>
     );
-  }, [showNotificationPopup, activePopupNotification, formatIndianTime]);
+  }, [showNotificationPopup, activePopupNotification, formatIndianTime, darkMode]);
 
   // Charging Notification Popup component
   const ChargingNotificationPopup = useCallback(() => {
     if (!showChargingNotification) return null;
 
     return (
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-xl z-50 w-64">
+      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${darkMode ? 'bg-gray-800' : 'bg-white'} p-4 rounded-lg shadow-xl z-50 w-64`}>
         <div className="flex items-start gap-2">
           <Zap size={20} className="text-yellow-500 mt-0.5" />
           <div className="flex-1">
-            <p className="font-medium">{chargingNotificationMessage}</p>
+            <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{chargingNotificationMessage}</p>
           </div>
         </div>
       </div>
     );
-  }, [showChargingNotification, chargingNotificationMessage]);
+  }, [showChargingNotification, chargingNotificationMessage, darkMode]);
 
   // App drawer component
   const AppDrawer = useCallback(() => (
-    <div className="absolute inset-0 p-4 flex flex-col items-center justify-center bg-white">
+    <div className={`absolute inset-0 p-4 flex flex-col items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <div className="grid grid-cols-2 gap-4 w-full">
         <button
           onClick={() => {
             setCurrentView('alarm');
             setShowAppDrawer(false);
           }}
-          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100"
+          className={`flex flex-col items-center p-4 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
         >
           <AlarmClock size={32} className="mb-2" />
-          <span>Alarm</span>
+          <span className={darkMode ? 'text-white' : ''}>Alarm</span>
         </button>
         <button
           onClick={() => {
             setCurrentView('music');
             setShowAppDrawer(false);
           }}
-          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100"
+          className={`flex flex-col items-center p-4 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
         >
           <Music size={32} className="mb-2" />
-          <span>Music</span>
+          <span className={darkMode ? 'text-white' : ''}>Music</span>
         </button>
         <button
           onClick={() => {
@@ -918,12 +922,12 @@ const SmartWatch = () => {
             setShowMessagesView(true);
             markAllAsRead();
           }}
-          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100 relative"
+          className={`flex flex-col items-center p-4 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'} relative`}
         >
           <MessageSquare size={32} className="mb-2" />
-          <span>Messages</span>
+          <span className={darkMode ? 'text-white' : ''}>Messages</span>
           {hasUnreadNotifications && (
-            <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full" />
+            <div className={`absolute top-2 right-2 w-2 h-2 ${darkMode ? 'bg-red-400' : 'bg-red-500'} rounded-full`} />
           )}
         </button>
         <button
@@ -931,32 +935,32 @@ const SmartWatch = () => {
             setCurrentView('settings');
             setShowAppDrawer(false);
           }}
-          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100"
+          className={`flex flex-col items-center p-4 rounded-lg ${darkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}`}
         >
           <Settings size={32} className="mb-2" />
-          <span>Settings</span>
+          <span className={darkMode ? 'text-white' : ''}>Settings</span>
         </button>
       </div>
       <button
         onClick={() => setShowAppDrawer(false)}
-        className="mt-6 px-6 py-2 bg-gray-200 rounded-lg"
+        className={`mt-6 px-6 py-2 ${darkMode ? 'bg-gray-700 text-white' : 'bg-gray-200'} rounded-lg`}
       >
         Close
       </button>
     </div>
-  ), [hasUnreadNotifications, markAllAsRead]);
+  ), [darkMode, hasUnreadNotifications, markAllAsRead]);
 
   // Messages view component
   const MessagesView = useCallback(() => (
-    <div className="absolute inset-0 flex flex-col bg-white">
-      <div className="p-4 border-b flex items-center gap-2">
+    <div className={`absolute inset-0 flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <div className={`p-4 border-b flex items-center gap-2 ${darkMode ? 'border-gray-800' : ''}`}>
         <button onClick={() => {
           setShowMessagesView(false);
           setCurrentView('home');
-        }}>
+        }} className={darkMode ? 'text-white' : ''}>
           <ChevronLeft size={20} />
         </button>
-        <h2 className="text-lg font-medium flex-1">Messages</h2>
+        <h2 className={`text-lg font-medium flex-1 ${darkMode ? 'text-white' : ''}`}>Messages</h2>
         <button
           onClick={clearAllNotifications}
           className="text-red-500"
@@ -969,13 +973,13 @@ const SmartWatch = () => {
       <div className="flex-1 overflow-y-auto">
         {notifications.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-gray-500">No messages</p>
+            <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>No messages</p>
           </div>
         ) : (
           notifications.map((note) => (
             <div
               key={note.id}
-              className="p-4 border-b hover:bg-gray-100"
+              className={`p-4 border-b ${darkMode ? 'border-gray-800 hover:bg-gray-800' : 'hover:bg-gray-100'}`}
             >
               <div className="flex justify-between items-start">
                 <div className="flex items-start gap-3 flex-1">
@@ -995,22 +999,23 @@ const SmartWatch = () => {
                       note.type === 'health' ? 'text-blue-500' :
                         note.type === 'system' ? 'text-yellow-500' :
                           note.type === 'alarm' ? 'text-orange-500' :
-                            note.type === 'charge' ? 'text-green-500' : ''
+                            note.type === 'charge' ? 'text-green-500' :
+                              darkMode ? 'text-white' : 'text-gray-800'
                     }>
                       {note.message}
                     </p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    <div className={`flex items-center gap-2 text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
                       <Clock size={12} />
                       <span>{formatIndianTime(note.timestamp)}</span>
                       {note.count !== undefined && (
-                        <span className="bg-gray-200 px-1 rounded">#{note.count}</span>
+                        <span className={`${darkMode ? 'bg-gray-700' : 'bg-gray-200'} px-1 rounded`}>#{note.count}</span>
                       )}
                     </div>
                   </div>
                 </div>
                 <button
                   onClick={() => deleteNotification(note.id)}
-                  className="text-gray-400 hover:text-red-500 ml-2"
+                  className={`${darkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'} ml-2`}
                   title="Delete message"
                 >
                   <X size={16} />
@@ -1021,15 +1026,15 @@ const SmartWatch = () => {
         )}
       </div>
     </div>
-  ), [notifications, deleteNotification, clearAllNotifications, formatIndianTime]);
+  ), [notifications, deleteNotification, clearAllNotifications, formatIndianTime, darkMode]);
 
   // Render current view
   const renderView = useCallback(() => {
     if (!isPoweredOn) {
       return (
-        <div className="flex flex-col items-center justify-center h-full p-4">
-          <Power className="w-16 h-16 text-gray-500 animate-pulse" />
-          <p className="mt-4 text-gray-500 text-center">
+        <div className={`flex flex-col items-center justify-center h-full p-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+          <Power className={`w-16 h-16 ${darkMode ? 'text-gray-500' : 'text-gray-400'} animate-pulse`} />
+          <p className={`mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'} text-center`}>
             {systemStatus.charging ? `Charging ${systemStatus.batteryLevel}%` : 'Powered off'}
           </p>
         </div>
@@ -1047,17 +1052,17 @@ const SmartWatch = () => {
     switch (currentView) {
       case 'settings':
         return (
-          <div className="p-4 h-full overflow-y-auto bg-white text-gray-900">
+          <div className={`p-4 h-full overflow-y-auto ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
             <div className="flex items-center gap-2 mb-4">
-              <button onClick={() => setCurrentView('home')}>
+              <button onClick={() => setCurrentView('home')} className={darkMode ? 'text-white' : ''}>
                 <ChevronLeft size={20} />
               </button>
-              <h2 className="text-lg font-medium">Settings</h2>
+              <h2 className={`text-lg font-medium ${darkMode ? 'text-white' : ''}`}>Settings</h2>
             </div>
 
             <div className="space-y-6">
               <div>
-                <label className="block text-sm mb-2">Brightness: {brightness}%</label>
+                <label className={`block text-sm mb-2 ${darkMode ? 'text-gray-300' : ''}`}>Brightness: {brightness}%</label>
                 <input
                   type="range"
                   min="10"
@@ -1069,11 +1074,10 @@ const SmartWatch = () => {
               </div>
 
               <div>
-                <label className="block text-sm mb-2">Sound</label>
+                <label className={`block text-sm mb-2 ${darkMode ? 'text-gray-300' : ''}`}>Sound</label>
                 <button
                   onClick={toggleMute}
-                  className={`w-full py-2 rounded-lg flex items-center justify-center gap-2 ${isMuted ? 'bg-gray-200' : 'bg-blue-600 text-white'
-                    }`}
+                  className={`w-full py-2 rounded-lg flex items-center justify-center gap-2 ${isMuted ? (darkMode ? 'bg-gray-700' : 'bg-gray-200') : 'bg-blue-600 text-white'}`}
                 >
                   {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                   <span>{isMuted ? 'Muted' : 'Sound On'}</span>
@@ -1081,10 +1085,10 @@ const SmartWatch = () => {
               </div>
 
               <div>
-                <label className="block text-sm mb-2">Wallpaper</label>
+                <label className={`block text-sm mb-2 ${darkMode ? 'text-gray-300' : ''}`}>Wallpaper</label>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-2 bg-gray-200 rounded-lg"
+                  className={`w-full py-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg`}
                 >
                   Change Wallpaper
                 </button>
@@ -1100,24 +1104,24 @@ const SmartWatch = () => {
                     setWallpaper(defaultWallpaper);
                     localStorage.removeItem('systemWallpaper');
                   }}
-                  className="w-full mt-2 py-2 bg-gray-200 rounded-lg"
+                  className={`w-full mt-2 py-2 ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} rounded-lg`}
                 >
                   Reset to Default
                 </button>
               </div>
 
               <div>
-                <label className="block text-sm mb-2">Notification Mode</label>
+                <label className={`block text-sm mb-2 ${darkMode ? 'text-gray-300' : ''}`}>Notification Mode</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setNotificationMode('auto')}
-                    className={`flex-1 py-2 rounded-lg ${notificationMode === 'auto' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    className={`flex-1 py-2 rounded-lg ${notificationMode === 'auto' ? 'bg-blue-600 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
                   >
                     Auto
                   </button>
                   <button
                     onClick={() => setNotificationMode('manual')}
-                    className={`flex-1 py-2 rounded-lg ${notificationMode === 'manual' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+                    className={`flex-1 py-2 rounded-lg ${notificationMode === 'manual' ? 'bg-blue-600 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
                   >
                     Manual
                   </button>
@@ -1125,9 +1129,9 @@ const SmartWatch = () => {
               </div>
 
               <div>
-                <label className="block text-sm mb-2">System Status</label>
-                <div className="p-3 bg-gray-100 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
+                <label className={`block text-sm mb-2 ${darkMode ? 'text-gray-300' : ''}`}>System Status</label>
+                <div className={`p-3 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg`}>
+                  <div className={`flex items-center gap-2 mb-1 ${darkMode ? 'text-gray-300' : ''}`}>
                     <Battery size={16} />
                     <span>Battery: {systemStatus.batteryLevel}% ({systemStatus.charging ? 'Charging' : 'Discharging'})</span>
                   </div>
@@ -1139,23 +1143,23 @@ const SmartWatch = () => {
 
       case 'alarm':
         return (
-          <div className="p-4 h-full overflow-y-auto bg-white text-gray-900">
+          <div className={`p-4 h-full overflow-y-auto ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
             <div className="flex items-center gap-2 mb-4">
-              <button onClick={() => setCurrentView('home')}>
+              <button onClick={() => setCurrentView('home')} className={darkMode ? 'text-white' : ''}>
                 <ChevronLeft size={20} />
               </button>
-              <h2 className="text-lg font-medium">Alarm & Stopwatch</h2>
+              <h2 className={`text-lg font-medium ${darkMode ? 'text-white' : ''}`}>Alarm & Stopwatch</h2>
             </div>
 
             <div className="space-y-8">
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <h3 className="text-md font-medium mb-2">Set Alarm</h3>
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                <h3 className={`text-md font-medium mb-2 ${darkMode ? 'text-white' : ''}`}>Set Alarm</h3>
                 <div className="flex items-center gap-2">
                   <input
                     type="time"
                     value={alarmTime}
                     onChange={(e) => setAlarmTime(e.target.value)}
-                    className="p-2 border rounded-lg"
+                    className={`p-2 border rounded-lg ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : ''}`}
                   />
                   {isAlarmSet ? (
                     <button
@@ -1174,7 +1178,7 @@ const SmartWatch = () => {
                   )}
                 </div>
                 {isAlarmSet && nextAlarmTrigger && (
-                  <p className="text-sm text-green-500 mt-2">
+                  <p className={`text-sm mt-2 ${darkMode ? 'text-green-400' : 'text-green-500'}`}>
                     Alarm set for {new Date(nextAlarmTrigger).toLocaleTimeString('en-IN', {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -1184,9 +1188,9 @@ const SmartWatch = () => {
                 )}
               </div>
 
-              <div className="bg-gray-100 p-4 rounded-lg">
-                <h3 className="text-md font-medium mb-2">Stopwatch</h3>
-                <div className="text-3xl font-mono text-center mb-4">
+              <div className={`p-4 rounded-lg ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                <h3 className={`text-md font-medium mb-2 ${darkMode ? 'text-white' : ''}`}>Stopwatch</h3>
+                <div className={`text-3xl font-mono text-center mb-4 ${darkMode ? 'text-white' : ''}`}>
                   {formatTime(stopwatchTime)}
                 </div>
                 <div className="flex justify-center gap-4">
@@ -1226,7 +1230,7 @@ const SmartWatch = () => {
                 {laps.length > 0 && (
                   <div className="mt-6">
                     <div className="flex justify-between items-center mb-2">
-                      <h4 className="text-sm font-medium">Laps:</h4>
+                      <h4 className={`text-sm font-medium ${darkMode ? 'text-white' : ''}`}>Laps:</h4>
                       <button
                         onClick={resetStopwatch}
                         className="text-xs text-red-500"
@@ -1236,13 +1240,13 @@ const SmartWatch = () => {
                     </div>
                     <div className="space-y-1">
                       {laps.map((lap) => (
-                        <div key={lap.id} className="flex justify-between items-center p-2 bg-gray-200 rounded">
-                          <span>Lap {laps.findIndex(l => l.id === lap.id) + 1}</span>
+                        <div key={lap.id} className={`flex justify-between items-center p-2 rounded ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+                          <span className={darkMode ? 'text-white' : ''}>Lap {laps.findIndex(l => l.id === lap.id) + 1}</span>
                           <div className="flex items-center gap-2">
-                            <span>{formatTime(lap.time)}</span>
+                            <span className={darkMode ? 'text-white' : ''}>{formatTime(lap.time)}</span>
                             <button
                               onClick={() => deleteLap(lap.id)}
-                              className="text-gray-400 hover:text-red-500"
+                              className={`${darkMode ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}`}
                               title="Delete lap"
                             >
                               <X size={14} />
@@ -1260,28 +1264,28 @@ const SmartWatch = () => {
 
       case 'music':
         return (
-          <div className="p-4 h-full flex flex-col bg-white text-gray-900">
+          <div className={`p-4 h-full flex flex-col ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
             <div className="flex items-center gap-2 mb-4">
-              <button onClick={() => setCurrentView('home')}>
+              <button onClick={() => setCurrentView('home')} className={darkMode ? 'text-white' : ''}>
                 <ChevronLeft size={20} />
               </button>
-              <h2 className="text-lg font-medium">Music Player</h2>
+              <h2 className={`text-lg font-medium ${darkMode ? 'text-white' : ''}`}>Music Player</h2>
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center">
-              <div className="w-full max-w-xs bg-gray-100 rounded-xl p-6">
+              <div className={`w-full max-w-xs rounded-xl p-6 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                 <div className="text-center mb-6">
                   <Music size={48} className="mx-auto text-blue-500 mb-2" />
-                  <h3 className="text-lg font-medium">{songs[currentSongIndex].title}</h3>
-                  <p className="text-sm text-gray-500">{songs[currentSongIndex].artist}</p>
+                  <h3 className={`text-lg font-medium ${darkMode ? 'text-white' : ''}`}>{songs[currentSongIndex].title}</h3>
+                  <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{songs[currentSongIndex].artist}</p>
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-500 mb-2">
+                <div className={`flex justify-between text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mb-2`}>
                   <span>{formatTime((progress / 100) * (3 * 60 * 1000))}</span>
                   <span>{songs[currentSongIndex].duration}</span>
                 </div>
 
-                <div className="h-1 bg-gray-300 rounded-full mb-6">
+                <div className={`h-1 rounded-full mb-6 ${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}>
                   <div
                     className="h-full bg-blue-500 rounded-full"
                     style={{ width: `${progress}%` }}
@@ -1289,7 +1293,7 @@ const SmartWatch = () => {
                 </div>
 
                 <div className="flex justify-center items-center gap-6">
-                  <button onClick={prevSong} className="text-gray-700">
+                  <button onClick={prevSong} className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
                     <SkipBack size={24} />
                   </button>
                   <button
@@ -1298,7 +1302,7 @@ const SmartWatch = () => {
                   >
                     {isPlaying ? <Pause size={24} /> : <Play size={24} />}
                   </button>
-                  <button onClick={nextSong} className="text-gray-700">
+                  <button onClick={nextSong} className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
                     <SkipForward size={24} />
                   </button>
                 </div>
@@ -1309,17 +1313,17 @@ const SmartWatch = () => {
 
       case 'heartrate':
         return (
-          <div className="p-4 h-full flex flex-col bg-white text-gray-900">
+          <div className={`p-4 h-full flex flex-col ${darkMode ? 'bg-gray-900 text-gray-100' : 'bg-white text-gray-900'}`}>
             <div className="flex items-center gap-2 mb-4">
               <button onClick={() => {
                 setCurrentView('home');
                 if (isHeartbeatPlaying) {
                   toggleHeartbeatSound();
                 }
-              }}>
+              }} className={darkMode ? 'text-white' : ''}>
                 <ChevronLeft size={20} />
               </button>
-              <h2 className="text-lg font-medium">Heart Rate</h2>
+              <h2 className={`text-lg font-medium ${darkMode ? 'text-white' : ''}`}>Heart Rate</h2>
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center">
@@ -1335,11 +1339,11 @@ const SmartWatch = () => {
                   </span>
                 </div>
               </div>
-              <p className="mt-4 text-lg">BPM</p>
-              <p className="text-sm text-gray-500 mt-2">Last updated: {formatIndianTime(time)}</p>
+              <p className={`mt-4 text-lg ${darkMode ? 'text-white' : ''}`}>BPM</p>
+              <p className={`text-sm mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>Last updated: {formatIndianTime(time)}</p>
               <button
                 onClick={toggleHeartbeatSound}
-                className={`mt-4 px-4 py-2 rounded-lg ${isHeartbeatPlaying ? 'bg-red-500 text-white' : 'bg-gray-200'}`}
+                className={`mt-4 px-4 py-2 rounded-lg ${isHeartbeatPlaying ? 'bg-red-500 text-white' : (darkMode ? 'bg-gray-700' : 'bg-gray-200')}`}
               >
                 {isHeartbeatPlaying ? 'Stop Heartbeat Sound' : 'Play Heartbeat Sound'}
               </button>
@@ -1355,14 +1359,14 @@ const SmartWatch = () => {
               backgroundImage: `url(${wallpaper})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
-            } : { backgroundColor: 'rgb(243, 244, 246)' }}
+            } : { backgroundColor: darkMode ? 'rgb(17, 24, 39)' : 'rgb(243, 244, 246)' }}
           >
             {/* Status bar at top */}
-            <div className="absolute top-5 left-0 right-0 px-4 flex justify-between items-center text-xs text-white">
+            <div className="absolute top-5 left-0 right-0 px-4 flex justify-between items-center text-xs">
               <div className="flex items-center gap-1">
                 <NotificationIcon />
               </div>
-              <div className="flex items-center gap-1">
+              <div className={`flex items-center gap-1 ${darkMode ? 'text-gray-300' : 'text-white'}`}>
                 {systemStatus.charging && <Zap size={12} className="text-yellow-400 animate-pulse" />}
                 <Battery size={20} />
                 <span>{systemStatus.batteryLevel}%</span>
@@ -1377,10 +1381,10 @@ const SmartWatch = () => {
 
             {/* Time display at bottom */}
             <div className="absolute bottom-16 left-0 right-0 text-center">
-              <div className="text-3xl font-light text-white">
+              <div className={`text-3xl font-light ${darkMode ? 'text-gray-100' : 'text-white'}`}>
                 {formatIndianTime(time)}
               </div>
-              <div className="text-sm text-gray-300">
+              <div className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-200'}`}>
                 {formatIndianDate(time)}
               </div>
             </div>
@@ -1392,7 +1396,7 @@ const SmartWatch = () => {
                   setCurrentView('heartrate');
                   toggleHeartbeatSound();
                 }}
-                className="absolute left-2 top-1/2 transform -translate-y-1/2 w-6 h-10 bg-gray-400/50 backdrop-blur-sm rounded-r-full flex items-center justify-center"
+                className={`absolute left-2 top-1/2 transform -translate-y-1/2 w-6 h-10 ${darkMode ? 'bg-gray-700/50' : 'bg-gray-400/50'} backdrop-blur-sm rounded-r-full flex items-center justify-center`}
               >
                 <Heart size={16} className="text-white" />
               </button>
@@ -1402,7 +1406,7 @@ const SmartWatch = () => {
             {currentView === 'home' && (
               <button
                 onClick={() => setShowAppDrawer(true)}
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-10 bg-gray-400/50 backdrop-blur-sm rounded-l-full flex items-center justify-center"
+                className={`absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-10 ${darkMode ? 'bg-gray-700/50' : 'bg-gray-400/50'} backdrop-blur-sm rounded-l-full flex items-center justify-center`}
               >
                 <Settings size={16} className="text-white" />
               </button>
@@ -1459,24 +1463,28 @@ const SmartWatch = () => {
     notificationMode,
     progress,
     isMuted,
-    toggleMute
+    toggleMute,
+    darkMode
   ]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className={`flex flex-col items-center justify-center min-h-screen p-4 ${darkMode ? 'bg-gray-100' : 'dark:bg-gray-900'}`}>
       <div className="mb-6 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Watch className="text-blue-500" size={32} />
-          <h1 className="text-2xl font-bold text-blue-500">AI Smart Watch</h1>
+          <Watch className={darkMode ? 'text-blue-400' : 'text-blue-500'} size={32} />
+          <h1 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-500'}`}>AI Smart Watch</h1>
         </div>
-        <p className="text-gray-600">
+        <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
           Experience the future of communication visually
         </p>
       </div>
 
       {/* Watch body - increased size */}
-      <div className={`relative w-96 h-[28rem] rounded-3xl border-8 border-gray-300 bg-white 
-        shadow-xl overflow-hidden ${!isPoweredOn ? 'opacity-80' : ''} ${isVibrating ? 'animate-vibrate' : ''}`}
+      <div className={`relative w-96 h-[28rem] rounded-3xl border-8 ${
+        darkMode ? 'border-gray-600' : 'border-gray-300'
+      } bg-white shadow-xl overflow-hidden ${
+        !isPoweredOn ? 'opacity-80' : ''
+      } ${isVibrating ? 'animate-vibrate' : ''}`}
         style={{ filter: `brightness(${brightness}%)` }}>
 
         {/* Watch screen content */}
@@ -1488,44 +1496,68 @@ const SmartWatch = () => {
         {/* Left side button - shows heart rate */}
         <button
           onClick={handleLeftTogglePress}
-          className="absolute -left-[12px] top-1/3 w-2 h-10 bg-gray-300 rounded-l"
+          className={`absolute -left-[12px] top-1/3 w-2 h-10 ${
+            darkMode ? 'bg-gray-500' : 'bg-gray-300'
+          } rounded-l`}
         />
 
         {/* Right side button - shows app drawer */}
         <button
           onClick={handleRightTogglePress}
-          className="absolute -right-[16px] top-1/3 w-2 h-10 bg-gray-300 rounded-r"
+          className={`absolute -right-[16px] top-1/3 w-2 h-10 ${
+            darkMode ? 'bg-gray-500' : 'bg-gray-300'
+          } rounded-r`}
         />
 
         {/* Power button */}
         <button
           onClick={togglePower}
-          className="absolute -right-2 top-1/3 w-2 h-8 bg-gray-400 rounded-r"
+          className={`absolute -right-2 top-1/3 w-2 h-8 ${
+            darkMode ? 'bg-gray-500' : 'bg-gray-400'
+          } rounded-r`}
         />
 
         {/* Bottom button - powers off the watch */}
         <button
           onClick={togglePower}
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-10 h-2 bg-gray-300 rounded-full"
+          className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 w-10 h-2 ${
+            darkMode ? 'bg-gray-500' : 'bg-gray-300'
+          } rounded-full`}
         />
       </div>
 
       {/* External controls - Notification Mode Panel */}
-      <div className="mt-8 p-6 bg-gray-200 rounded-lg w-full max-w-2xl">
-        <h2 className="text-xl font-bold mb-4 text-center">Notification Mode Control Panel</h2>
+      <div className={`mt-8 p-6 rounded-lg w-full max-w-2xl ${
+        darkMode ?  'bg-gray-100' : 'dark:bg-gray-900'
+      }`}>
+        <h2 className={`text-xl font-bold mb-4 text-center ${
+          darkMode ? 'dark:text-white' : ''
+        }`}>
+          Notification Mode Control Panel
+        </h2>
 
         <div className="mb-6">
-          <h3 className="font-medium mb-2">Notification Mode</h3>
+          <h3 className={`font-medium mb-2 ${
+            darkMode ? 'dark:text-gray-300' : ''
+          }`}>
+            Notification Mode
+          </h3>
           <div className="flex gap-2">
             <button
               onClick={() => setNotificationMode('auto')}
-              className={`flex-1 py-3 rounded-lg ${notificationMode === 'auto' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+              className={`flex-1 py-3 rounded-lg ${
+                notificationMode === 'auto' ? 'bg-blue-600 text-white' : 
+                darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-300'
+              }`}
             >
               Auto Mode
             </button>
             <button
               onClick={() => setNotificationMode('manual')}
-              className={`flex-1 py-3 rounded-lg ${notificationMode === 'manual' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
+              className={`flex-1 py-3 rounded-lg ${
+                notificationMode === 'manual' ? 'bg-blue-600 text-white' : 
+                darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-300'
+              }`}
             >
               Manual Mode
             </button>
@@ -1534,14 +1566,20 @@ const SmartWatch = () => {
 
         {notificationMode === 'manual' && (
           <div className="space-y-4">
-            <h3 className="font-medium">Send Custom Notification</h3>
+            <h3 className={`font-medium ${
+              darkMode ? 'dark:text-gray-300' : ''
+            }`}>
+              Send Custom Notification
+            </h3>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={manualMessage}
                 onChange={(e) => setManualMessage(e.target.value)}
                 placeholder="Enter your message"
-                className="flex-1 p-3 border rounded-lg"
+                className={`flex-1 p-3 border rounded-lg ${
+                  darkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400' : ''
+                }`}
               />
               <button
                 onClick={sendManualNotification}
@@ -1556,18 +1594,30 @@ const SmartWatch = () => {
 
         {notificationMode === 'auto' && (
           <div className="space-y-4">
-            <h3 className="font-medium">Auto Notification Settings</h3>
-            <div className="bg-gray-100 p-4 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
+            <h3 className={`font-medium ${
+              darkMode ? 'dark:text-gray-300' : ''
+            }`}>
+              Auto Notification Settings
+            </h3>
+            <div className={`p-4 rounded-lg ${
+              darkMode ? 'bg-gray-100' : 'dark:bg-gray-900'
+            }`}>
+              <div className={`flex items-center gap-2 mb-2 ${
+                darkMode ? 'dark:text-gray-300' : ''
+              }`}>
                 <Clock size={18} />
                 <span>Health notifications sent every 3 minutes</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-2 ${
+                darkMode ? 'dark:text-gray-300' : ''
+              }`}>
                 <Bell size={18} />
                 <span>Total notifications sent: {notificationCount}</span>
               </div>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className={`text-sm ${
+              darkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}>
               In auto mode, the watch will automatically generate health reminders periodically.
             </p>
           </div>

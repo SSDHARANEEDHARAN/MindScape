@@ -1,10 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area
 } from 'recharts';
 import { BarChart2, PieChart as PieChartIcon, Percent, LineChart as LineChartIcon } from 'lucide-react';
+import { useUser } from '../hooks/useUser';
+import { UserData } from '../types/types';
 
 interface MoodData {
   category: string;
@@ -14,11 +15,8 @@ interface MoodData {
 type ChartType = 'circular' | 'percentage' | 'bar' | 'line';
 
 interface MoodChartProps {
-  moodData: MoodData[];
   chartType: ChartType;
   onChartTypeChange?: (type: ChartType) => void;
-  userNotes?: string;
-  userId?: string;
 }
 
 const COLORS = {
@@ -63,13 +61,133 @@ const renderCustomizedLabel = ({
   );
 };
 
+const analyzeMentalHealth = (userData: UserData | null): MoodData[] => {
+  if (!userData) {
+    return [
+      { category: 'happy', percentage: 40 },
+      { category: 'sad', percentage: 20 },
+      { category: 'stressed', percentage: 25 },
+      { category: 'neutral', percentage: 15 }
+    ];
+  }
+
+  // Calculate scores for each factor (normalized to 0-10 scale)
+  const calculateScreenScore = (screenTime?: number) => {
+    if (!screenTime) return 5;
+    if (screenTime <= 2) return 1;
+    if (screenTime <= 4) return 3;
+    if (screenTime <= 6) return 5;
+    if (screenTime <= 8) return 7;
+    return 10;
+  };
+
+  const calculateSleepScore = (sleepTime?: number) => {
+    if (!sleepTime) return 5;
+    if (sleepTime <= 4) return 1;
+    if (sleepTime <= 5) return 3;
+    if (sleepTime <= 7) return 5;
+    if (sleepTime <= 8) return 8;
+    return 10;
+  };
+
+  const calculateFoodScore = (morningFood?: string, eveningFood?: string) => {
+    const healthyKeywords = ['vegetable', 'fruit', 'whole grain', 'lean protein', 'healthy'];
+    const unhealthyKeywords = ['fast food', 'processed', 'sugary', 'fried', 'junk'];
+    
+    const analyzeMeal = (meal?: string) => {
+      if (!meal) return 5;
+      const isHealthy = healthyKeywords.some(keyword => meal.toLowerCase().includes(keyword));
+      const isUnhealthy = unhealthyKeywords.some(keyword => meal.toLowerCase().includes(keyword));
+      
+      if (isHealthy) return 9;
+      if (isUnhealthy) return 2;
+      return 5;
+    };
+    
+    const breakfastScore = analyzeMeal(morningFood);
+    const dinnerScore = analyzeMeal(eveningFood);
+    return (breakfastScore + dinnerScore) / 2;
+  };
+
+  const calculateAgeScore = (age?: number) => {
+    if (!age) return 5;
+    if (age < 18) return 8;
+    if (age <= 25) return 6;
+    if (age <= 35) return 5;
+    if (age <= 50) return 4;
+    return 3;
+  };
+
+  // Get all scores
+  const screenScore = calculateScreenScore(userData.screenTime);
+  const sleepScore = calculateSleepScore(userData.sleepTime);
+  const foodScore = calculateFoodScore(userData.morningFood, userData.eveningFood);
+  const ageScore = calculateAgeScore(userData.age);
+
+  // Calculate mood components based on the provided formulas
+  let stress = (0.4 * screenScore) - (0.3 * sleepScore) - (0.2 * foodScore) + (0.1 * ageScore) + 4;
+  let happiness = (0.3 * sleepScore) + (0.2 * foodScore) + (0.1 * ageScore) - (0.3 * screenScore) + 5;
+  let sadness = (0.3 * screenScore) - (0.2 * sleepScore) - (0.2 * foodScore) + (0.1 * ageScore) + 3;
+  
+  // Ensure values are within reasonable bounds
+  stress = Math.max(0, Math.min(10, stress));
+  happiness = Math.max(0, Math.min(10, happiness));
+  sadness = Math.max(0, Math.min(10, sadness));
+  
+  // Calculate neutrality based on the formula
+  let neutrality = 10 - Math.abs(happiness - sadness);
+  neutrality = Math.max(0, Math.min(10, neutrality));
+
+  // Convert to percentages (scale to 0-100)
+  const total = happiness + sadness + stress + neutrality;
+  const happyPercentage = Math.round((happiness / total) * 100);
+  const sadPercentage = Math.round((sadness / total) * 100);
+  const stressedPercentage = Math.round((stress / total) * 100);
+  const neutralPercentage = Math.round((neutrality / total) * 100);
+
+  // Adjust for rounding errors
+  const diff = 100 - (happyPercentage + sadPercentage + stressedPercentage + neutralPercentage);
+  const adjustedHappy = happyPercentage + diff;
+
+  return [
+    { category: 'happy', percentage: Math.max(0, Math.min(100, adjustedHappy)) },
+    { category: 'sad', percentage: Math.max(0, Math.min(100, sadPercentage)) },
+    { category: 'stressed', percentage: Math.max(0, Math.min(100, stressedPercentage)) },
+    { category: 'neutral', percentage: Math.max(0, Math.min(100, neutralPercentage)) }
+  ];
+};
+
+const nlmAnalysis = (data: MoodData[]): MoodData[] => {
+  return data.map(item => {
+    let adjustment = 0;
+    if (item.category === 'happy') adjustment = -5;
+    if (item.category === 'stressed') adjustment = 10;
+    if (item.category === 'sad') adjustment = 5;
+    return {
+      category: item.category,
+      percentage: Math.max(0, Math.min(100, item.percentage + adjustment))
+    };
+  });
+};
+
+const datasetAnalysis = (data: MoodData[]): MoodData[] => {
+  return data.map(item => {
+    let adjustment = 0;
+    if (item.category === 'happy') adjustment = -10;
+    if (item.category === 'neutral') adjustment = 5;
+    if (item.category === 'stressed') adjustment = 15;
+    return {
+      category: item.category,
+      percentage: Math.max(0, Math.min(100, item.percentage + adjustment))
+    };
+  });
+};
+
 const MoodChart: React.FC<MoodChartProps> = ({
-  moodData,
   chartType,
-  onChartTypeChange,
-  userNotes = '',
-  userId
+  onChartTypeChange
 }) => {
+  const { userData } = useUser();
   const [aiData, setAiData] = useState<MoodData[]>([]);
   const [nlmData, setNlmData] = useState<MoodData[]>([]);
   const [datasetComparison, setDatasetComparison] = useState<MoodData[]>([]);
@@ -77,191 +195,171 @@ const MoodChart: React.FC<MoodChartProps> = ({
   const [analysisResult, setAnalysisResult] = useState('');
   const [showComparison, setShowComparison] = useState(false);
 
-  const API_KEY = 'AIzaSyBy0KCb5kFziYZC5gXkFgB3mXEmMzsatTE';
-  const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-
-  const defaultData = useMemo(() => [
-    { category: 'happy', percentage: 55 },
-    { category: 'neutral', percentage: 30 },
-    { category: 'stressed', percentage: 20 },
-    { category: 'sad', percentage: 10 }
-  ], []);
-
-  const data = useMemo(() => moodData.length > 0 ? moodData : defaultData, [moodData, defaultData]);
-
-  const timeSeriesData = useMemo(() => [
-    { name: 'Mon', happy: 45, sad: 10, stressed: 20, neutral: 30, aiHappy: 35, aiSad: 15, aiStressed: 25, aiNeutral: 25 },
-    { name: 'Tue', happy: 45, sad: 15, stressed: 15, neutral: 25, aiHappy: 40, aiSad: 20, aiStressed: 20, aiNeutral: 20 },
-    { name: 'Wed', happy: 30, sad: 20, stressed: 30, neutral: 20, aiHappy: 35, aiSad: 25, aiStressed: 25, aiNeutral: 15 },
-    { name: 'Thu', happy: 50, sad: 10, stressed: 10, neutral: 30, aiHappy: 45, aiSad: 15, aiStressed: 15, aiNeutral: 25 },
-    { name: 'Fri', happy: 60, sad: 5, stressed: 15, neutral: 20, aiHappy: 55, aiSad: 10, aiStressed: 20, aiNeutral: 15 },
-    { name: 'Sat', happy: 65, sad: 5, stressed: 10, neutral: 20, aiHappy: 60, aiSad: 10, aiStressed: 15, aiNeutral: 15 },
-    { name: 'Sun', happy: 55, sad: 10, stressed: 15, neutral: 20, aiHappy: 50, aiSad: 15, aiStressed: 20, aiNeutral: 15 }
-  ], []);
-
-  const getStorageKey = useCallback((key: string) => 
-    userId ? `mindscape_mood_${key}_${userId}` : `mindscape_mood_${key}`,
-    [userId]
+  const getSessionKey = useCallback((key: string) => 
+    userData?.id ? `session_mood_${key}_${userData.id}` : `session_mood_${key}`,
+    [userData?.id]
   );
 
-  const generateDataHash = useCallback(() => {
-    const dataString = JSON.stringify({ moodData, userNotes });
-    let hash = 0;
-    for (let i = 0; i < dataString.length; i++) {
-      const char = dataString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return hash.toString();
-  }, [moodData, userNotes]);
+  const initializeSessionData = useCallback(() => {
+    if (!userData) return;
 
-  const analyzeDataWithAI = useCallback(async () => {
-    const currentHash = generateDataHash();
-    const storageKey = getStorageKey('analysis');
-    const cachedData = localStorage.getItem(storageKey);
-    
+    const sessionKey = getSessionKey('mood_data');
+    const cachedData = sessionStorage.getItem(sessionKey);
+
     if (cachedData) {
-      const parsedData = JSON.parse(cachedData);
-      if (parsedData.dataHash === currentHash) {
-        setAiData(parsedData.moodDistribution || []);
-        setAnalysisResult(parsedData.analysis || '');
-        return;
-      }
+      const { 
+        aiData: cachedAiData, 
+        nlmData: cachedNlmData, 
+        datasetComparison: cachedDataset, 
+        analysisResult: cachedAnalysis 
+      } = JSON.parse(cachedData);
+      
+      setAiData(cachedAiData);
+      setNlmData(cachedNlmData);
+      setDatasetComparison(cachedDataset);
+      setAnalysisResult(cachedAnalysis);
+      return;
     }
 
     setIsLoading(true);
     try {
-      const prompt = `Analyze this mood data and user notes to provide:
-      1. Mood distribution percentages (happy, sad, stressed, neutral)
-      2. Brief analysis of patterns
+      const baseData = analyzeMentalHealth(userData);
+      const aiAnalysis = baseData;
+      const nlmResult = nlmAnalysis(baseData);
+      const datasetResult = datasetAnalysis(baseData);
+
+      let analysis = "Based on your profile: ";
+      const recommendations = [];
       
-      Mood Data: ${JSON.stringify(moodData)}
-      User Notes: ${userNotes}
+      if (userData.sleepTime && userData.sleepTime < 7) {
+        analysis += "Your sleep duration seems low, which may affect mood. ";
+        recommendations.push("Aim for 7-9 hours of sleep");
+      }
       
-      Return a JSON object with 'analysis' string and 'moodDistribution' array like:
-      { analysis: string, moodDistribution: [{category: string, percentage: number}] }`;
-
-      const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: prompt
-            }]
-          }]
-        })
-      });
-
-      const result = await response.json();
-      const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-      const parsedResponse = JSON.parse(textResponse.replace(/```json|```/g, ''));
-
-      if (parsedResponse.moodDistribution) {
-        const resultToStore = {
-          moodDistribution: parsedResponse.moodDistribution,
-          analysis: parsedResponse.analysis || '',
-          dataHash: currentHash
-        };
-        setAiData(parsedResponse.moodDistribution);
-        localStorage.setItem(storageKey, JSON.stringify(resultToStore));
+      if (userData.screenTime && userData.screenTime > 6) {
+        analysis += "High screen time can contribute to stress. ";
+        recommendations.push("Take regular screen breaks");
       }
-      if (parsedResponse.analysis) {
-        setAnalysisResult(parsedResponse.analysis);
+      
+      if (userData.age && userData.age < 25) {
+        analysis += "Young adults often experience more mood variability. ";
       }
-    } catch (error) {
-      console.error('AI analysis error:', error);
-      const fallbackData = [
-        { category: 'happy', percentage: Math.min(100, data.find(d => d.category === 'happy')?.percentage || 0 + 5) },
-        { category: 'sad', percentage: Math.min(100, data.find(d => d.category === 'sad')?.percentage || 0 + 5) },
-        { category: 'stressed', percentage: Math.min(100, data.find(d => d.category === 'stressed')?.percentage || 0 + 5) },
-        { category: 'neutral', percentage: Math.min(100, data.find(d => d.category === 'neutral')?.percentage || 0 + 5) }
-      ];
-      const resultToStore = {
-        moodDistribution: fallbackData,
-        analysis: "Standard mood pattern detected",
-        dataHash: currentHash
+      
+      if (!analysis.includes("sleep") && !analysis.includes("screen")) {
+        analysis += "Your lifestyle factors appear balanced. ";
+      }
+      
+      if (recommendations.length > 0) {
+        analysis += "Recommendations: " + recommendations.join(", ") + ".";
+      } else {
+        analysis += "Maintain healthy habits for optimal mental wellbeing.";
+      }
+
+      const sessionData = {
+        aiData: aiAnalysis,
+        nlmData: nlmResult,
+        datasetComparison: datasetResult,
+        analysisResult: analysis
       };
-      setAiData(fallbackData);
-      localStorage.setItem(storageKey, JSON.stringify(resultToStore));
+      
+      sessionStorage.setItem(sessionKey, JSON.stringify(sessionData));
+      
+      setAiData(aiAnalysis);
+      setNlmData(nlmResult);
+      setDatasetComparison(datasetResult);
+      setAnalysisResult(analysis);
+    } catch (error) {
+      console.error('Error initializing mood data:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [moodData, userNotes, data, userId, generateDataHash, getStorageKey]);
-
-  const generateNlmAnalysis = useCallback(() => {
-    const currentHash = generateDataHash();
-    const storageKey = getStorageKey('nlm');
-    const cachedData = localStorage.getItem(storageKey);
-    
-    if (cachedData) {
-      const parsedData = JSON.parse(cachedData);
-      if (parsedData.dataHash === currentHash) {
-        setNlmData(parsedData.result || []);
-        return;
-      }
-    }
-
-    const nlmResult = data.map(item => {
-      let adjustment = 0;
-      if (item.category === 'happy') adjustment = -5;
-      if (item.category === 'stressed') adjustment = 10;
-      return {
-        category: item.category,
-        percentage: Math.max(0, Math.min(100, item.percentage + adjustment))
-      };
-    });
-    
-    const resultToStore = {
-      result: nlmResult,
-      dataHash: currentHash
-    };
-    
-    setNlmData(nlmResult);
-    localStorage.setItem(storageKey, JSON.stringify(resultToStore));
-  }, [data, userId, generateDataHash, getStorageKey]);
-
-  const compareWithDataset = useCallback(() => {
-    const currentHash = generateDataHash();
-    const storageKey = getStorageKey('dataset');
-    const cachedData = localStorage.getItem(storageKey);
-    
-    if (cachedData) {
-      const parsedData = JSON.parse(cachedData);
-      if (parsedData.dataHash === currentHash) {
-        setDatasetComparison(parsedData.result || []);
-        return;
-      }
-    }
-
-    const datasetResult = data.map(item => {
-      let adjustment = 0;
-      if (item.category === 'happy') adjustment = -10;
-      if (item.category === 'neutral') adjustment = 5;
-      return {
-        category: item.category,
-        percentage: Math.max(0, Math.min(100, item.percentage + adjustment))
-      };
-    });
-    
-    const resultToStore = {
-      result: datasetResult,
-      dataHash: currentHash
-    };
-    
-    setDatasetComparison(datasetResult);
-    localStorage.setItem(storageKey, JSON.stringify(resultToStore));
-  }, [data, userId, generateDataHash, getStorageKey]);
+  }, [userData, getSessionKey]);
 
   useEffect(() => {
-    if (moodData.length > 0 || userNotes) {
-      analyzeDataWithAI();
-      generateNlmAnalysis();
-      compareWithDataset();
+    initializeSessionData();
+  }, [initializeSessionData]);
+
+  const data = useMemo(() => analyzeMentalHealth(userData), [userData]);
+
+  const timeSeriesData = useMemo(() => [
+    { 
+      name: 'Mon', 
+      happy: data[0].percentage, 
+      sad: data[1].percentage, 
+      stressed: data[2].percentage, 
+      neutral: data[3].percentage,
+      aiHappy: aiData[0]?.percentage || 0, 
+      aiSad: aiData[1]?.percentage || 0, 
+      aiStressed: aiData[2]?.percentage || 0, 
+      aiNeutral: aiData[3]?.percentage || 0 
+    },
+    { 
+      name: 'Tue', 
+      happy: data[0].percentage - 5, 
+      sad: data[1].percentage + 5, 
+      stressed: data[2].percentage, 
+      neutral: data[3].percentage,
+      aiHappy: (aiData[0]?.percentage || 0) - 5, 
+      aiSad: (aiData[1]?.percentage || 0) + 5, 
+      aiStressed: aiData[2]?.percentage || 0, 
+      aiNeutral: aiData[3]?.percentage || 0 
+    },
+    { 
+      name: 'Wed', 
+      happy: data[0].percentage - 10, 
+      sad: data[1].percentage, 
+      stressed: data[2].percentage + 10, 
+      neutral: data[3].percentage,
+      aiHappy: (aiData[0]?.percentage || 0) - 10, 
+      aiSad: aiData[1]?.percentage || 0, 
+      aiStressed: (aiData[2]?.percentage || 0) + 10, 
+      aiNeutral: aiData[3]?.percentage || 0 
+    },
+    { 
+      name: 'Thu', 
+      happy: data[0].percentage + 5, 
+      sad: data[1].percentage - 5, 
+      stressed: data[2].percentage - 5, 
+      neutral: data[3].percentage + 5,
+      aiHappy: (aiData[0]?.percentage || 0) + 5, 
+      aiSad: (aiData[1]?.percentage || 0) - 5, 
+      aiStressed: (aiData[2]?.percentage || 0) - 5, 
+      aiNeutral: (aiData[3]?.percentage || 0) + 5 
+    },
+    { 
+      name: 'Fri', 
+      happy: data[0].percentage + 10, 
+      sad: data[1].percentage - 10, 
+      stressed: data[2].percentage, 
+      neutral: data[3].percentage,
+      aiHappy: (aiData[0]?.percentage || 0) + 10, 
+      aiSad: (aiData[1]?.percentage || 0) - 10, 
+      aiStressed: aiData[2]?.percentage || 0, 
+      aiNeutral: aiData[3]?.percentage || 0 
+    },
+    { 
+      name: 'Sat', 
+      happy: data[0].percentage + 15, 
+      sad: data[1].percentage - 5, 
+      stressed: data[2].percentage - 10, 
+      neutral: data[3].percentage,
+      aiHappy: (aiData[0]?.percentage || 0) + 15, 
+      aiSad: (aiData[1]?.percentage || 0) - 5, 
+      aiStressed: (aiData[2]?.percentage || 0) - 10, 
+      aiNeutral: aiData[3]?.percentage || 0 
+    },
+    { 
+      name: 'Sun', 
+      happy: data[0].percentage, 
+      sad: data[1].percentage, 
+      stressed: data[2].percentage, 
+      neutral: data[3].percentage,
+      aiHappy: aiData[0]?.percentage || 0, 
+      aiSad: aiData[1]?.percentage || 0, 
+      aiStressed: aiData[2]?.percentage || 0, 
+      aiNeutral: aiData[3]?.percentage || 0 
     }
-  }, [moodData, userNotes, analyzeDataWithAI, generateNlmAnalysis, compareWithDataset]);
+  ], [data, aiData]);
 
   const renderChartSelector = () => (
     <div className="flex flex-wrap gap-2 mb-4">
@@ -480,6 +578,18 @@ const MoodChart: React.FC<MoodChartProps> = ({
     }
   };
 
+  const getCurrentMoodPercentages = () => {
+    const currentData = showComparison ? aiData : data;
+    return {
+      happy: currentData?.find(item => item.category === 'happy')?.percentage || 0,
+      sad: currentData?.find(item => item.category === 'sad')?.percentage || 0,
+      stressed: currentData?.find(item => item.category === 'stressed')?.percentage || 0,
+      neutral: currentData?.find(item => item.category === 'neutral')?.percentage || 0
+    };
+  };
+
+  const currentMood = getCurrentMoodPercentages();
+
   return (
     <div className="w-full">
       <div className="flex justify-between items-center mb-4">
@@ -497,6 +607,34 @@ const MoodChart: React.FC<MoodChartProps> = ({
         ) : (
           renderChart()
         )}
+      </div>
+
+      {/* Mood percentage boxes */}
+      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg text-center">
+          <span className="block text-sm text-green-800 dark:text-green-200">Happy</span>
+          <span className="font-bold text-green-600 dark:text-green-300">
+            {currentMood.happy}%
+          </span>
+        </div>
+        <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-center">
+          <span className="block text-sm text-blue-800 dark:text-blue-200">Sad</span>
+          <span className="font-bold text-blue-600 dark:text-blue-300">
+            {currentMood.sad}%
+          </span>
+        </div>
+        <div className="bg-red-100 dark:bg-red-900 p-2 rounded-lg text-center">
+          <span className="block text-sm text-red-800 dark:text-red-200">Stressed</span>
+          <span className="font-bold text-red-600 dark:text-red-300">
+            {currentMood.stressed}%
+          </span>
+        </div>
+        <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-center">
+          <span className="block text-sm text-gray-800 dark:text-gray-200">Neutral</span>
+          <span className="font-bold text-gray-600 dark:text-gray-300">
+            {currentMood.neutral}%
+          </span>
+        </div>
       </div>
       
       {showComparison && !isLoading && renderComparisonChart()}

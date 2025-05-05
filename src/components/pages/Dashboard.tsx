@@ -147,32 +147,6 @@ const Dashboard: React.FC = () => {
                 onChartTypeChange={handleChartTypeChange}
                 interactive={true}
               />
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg text-center">
-                  <span className="block text-sm text-green-800 dark:text-green-200">Happy</span>
-                  <span className="font-bold text-green-600 dark:text-green-300">
-                    {Math.round(Math.random() * 50 + 30)}%
-                  </span>
-                </div>
-                <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-center">
-                  <span className="block text-sm text-blue-800 dark:text-blue-200">Sad</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-300">
-                    {Math.round(Math.random() * 20 + 5)}%
-                  </span>
-                </div>
-                <div className="bg-red-100 dark:bg-red-900 p-2 rounded-lg text-center">
-                  <span className="block text-sm text-red-800 dark:text-red-200">Stressed</span>
-                  <span className="font-bold text-red-600 dark:text-red-300">
-                    {Math.round(Math.random() * 30 + 10)}%
-                  </span>
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-center">
-                  <span className="block text-sm text-gray-800 dark:text-gray-200">Neutral</span>
-                  <span className="font-bold text-gray-600 dark:text-gray-300">
-                    {Math.round(Math.random() * 40 + 20)}%
-                  </span>
-                </div>
-              </div>
             </>
           </div>
         );
@@ -189,7 +163,7 @@ const Dashboard: React.FC = () => {
         return (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 mb-6">
             {renderWidgetHeader(id, 'Health Metrics')}
-            <HealthMetrics />
+            <HealthMetrics darkMode={false} />
           </div>
         );
       
@@ -359,7 +333,7 @@ const Dashboard: React.FC = () => {
       case 'Watchs':
         return (
           <div className="mb-6">
-            <Watchs />
+            <Watchs darkMode={false} />
           </div>
         );   
 

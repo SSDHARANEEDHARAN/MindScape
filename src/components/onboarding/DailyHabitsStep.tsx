@@ -10,6 +10,16 @@ interface DailyHabitsStepProps {
   darkMode: boolean;
 }
 
+const morningFoodOptions = [
+  'Tea',
+  'Coffee',
+  'Milk',
+  'Health Drinks',
+  'Tiffen',
+  'Natural Mix',
+  'Others'
+];
+
 const eveningFoodOptions = [
   'Junk Food',
   'Tea',
@@ -17,7 +27,7 @@ const eveningFoodOptions = [
   'Small Tiffen',
   'Hotel Foods',
   'Fries',
-  'Others',
+  'Others'
 ];
 
 const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
@@ -32,15 +42,25 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
   const [medicalCheckupDate, setMedicalCheckupDate] = useState<string>('');
   const [hospitalName, setHospitalName] = useState<string>('');
   const [hospitalDistrict, setHospitalDistrict] = useState<string>('');
-  const [showFoodOptions, setShowFoodOptions] = useState(false);
-  const [foodInputValue, setFoodInputValue] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Morning food state
+  const [showMorningFoodOptions, setShowMorningFoodOptions] = useState(false);
+  const [morningFoodInputValue, setMorningFoodInputValue] = useState(userData.morningFood || '');
+  
+  // Evening food state
+  const [showEveningFoodOptions, setShowEveningFoodOptions] = useState(false);
+  const [eveningFoodInputValue, setEveningFoodInputValue] = useState(userData.eveningFood || '');
+  
+  const morningFoodRef = useRef<HTMLDivElement>(null);
+  const eveningFoodRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowFoodOptions(false);
+      if (morningFoodRef.current && !morningFoodRef.current.contains(event.target as Node)) {
+        setShowMorningFoodOptions(false);
+      }
+      if (eveningFoodRef.current && !eveningFoodRef.current.contains(event.target as Node)) {
+        setShowEveningFoodOptions(false);
       }
     };
 
@@ -57,23 +77,39 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
     nextStep();
   };
 
-  const handleFoodSelect = (food: string) => {
+  const handleMorningFoodSelect = (food: string) => {
     if (food === 'Others') {
-      setFoodInputValue('');
+      setMorningFoodInputValue('');
+      updateUserData({ morningFood: '' });
+    } else {
+      setMorningFoodInputValue(food);
+      updateUserData({ morningFood: food });
+    }
+    setShowMorningFoodOptions(false);
+  };
+
+  const handleMorningInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setMorningFoodInputValue(value);
+    updateUserData({ morningFood: value });
+  };
+
+  const handleEveningFoodSelect = (food: string) => {
+    if (food === 'Others') {
+      setEveningFoodInputValue('');
       updateUserData({ eveningFood: '' });
     } else {
-      setFoodInputValue(food);
+      setEveningFoodInputValue(food);
       updateUserData({ eveningFood: food });
     }
-    setShowFoodOptions(false);
+    setShowEveningFoodOptions(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFoodInputValue(e.target.value);
-    updateUserData({ eveningFood: e.target.value });
+  const handleEveningInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEveningFoodInputValue(value);
+    updateUserData({ eveningFood: value });
   };
-
-  const handleInputFocus = () => setShowFoodOptions(true);
 
   const baseInputClass = `w-full px-4 py-2 rounded-lg border focus:ring-2 focus:border-transparent ${
     darkMode
@@ -96,7 +132,8 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
       <h2 className="text-2xl font-bold mb-6 text-center">Your Daily Habits</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
+        {/* Morning Food Dropdown */}
+        <div className="relative" ref={morningFoodRef}>
           <label htmlFor="morningFood" className="text-sm font-medium mb-1 flex items-center">
             <Coffee className="w-4 h-4 mr-2" />
             Morning Food
@@ -104,31 +141,48 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
           <input
             type="text"
             id="morningFood"
-            value={userData.morningFood}
-            onChange={(e) => updateUserData({ morningFood: e.target.value })}
+            value={morningFoodInputValue}
+            onChange={handleMorningInputChange}
+            onFocus={() => setShowMorningFoodOptions(true)}
             className={baseInputClass}
-            placeholder="What do you typically eat for breakfast?"
+            placeholder="Select or type your morning food"
             required
           />
+          {showMorningFoodOptions && (
+            <div
+              className={`absolute z-10 mt-1 w-full shadow-lg rounded-lg py-1 border ${
+                darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}
+            >
+              {morningFoodOptions.map((food) => (
+                <div
+                  key={`morning-${food}`}
+                  className={dropdownItemClass}
+                  onClick={() => handleMorningFoodSelect(food)}
+                >
+                  {food}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Evening Food with Dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        {/* Evening Food Dropdown */}
+        <div className="relative" ref={eveningFoodRef}>
           <label htmlFor="eveningFood" className="text-sm font-medium mb-1">
             Evening Food
           </label>
           <input
             type="text"
             id="eveningFood"
-            ref={inputRef}
-            value={foodInputValue || userData.eveningFood}
-            onChange={handleInputChange}
-            onFocus={handleInputFocus}
+            value={eveningFoodInputValue}
+            onChange={handleEveningInputChange}
+            onFocus={() => setShowEveningFoodOptions(true)}
             className={baseInputClass}
             placeholder="Select or type your evening food"
             required
           />
-          {showFoodOptions && (
+          {showEveningFoodOptions && (
             <div
               className={`absolute z-10 mt-1 w-full shadow-lg rounded-lg py-1 border ${
                 darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
@@ -136,9 +190,9 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
             >
               {eveningFoodOptions.map((food) => (
                 <div
-                  key={food}
+                  key={`evening-${food}`}
                   className={dropdownItemClass}
-                  onClick={() => handleFoodSelect(food)}
+                  onClick={() => handleEveningFoodSelect(food)}
                 >
                   {food}
                 </div>

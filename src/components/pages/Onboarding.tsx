@@ -92,7 +92,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ darkMode }) => {
           }`}>
             <Brain className={`h-8 w-8 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`} />
           </div>
-          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>MoodMirror</h1>
+          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Mindscape</h1>
           <p className={`mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
             AI-Powered Mental Health Analysis
           </p>
