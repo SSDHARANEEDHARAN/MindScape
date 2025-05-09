@@ -6,6 +6,43 @@ import Welcome from './components/pages/Welcome';
 import Onboarding from './components/pages/Onboarding';
 import Dashboard from './components/pages/Dashboard';
 
+
+// Security measures to deter inspection
+const disableInspect = () => {
+  // Prevent right-click
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
+
+  // Prevent F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+  document.addEventListener('keydown', (e) => {
+    if (
+      e.key === 'F12' ||
+      (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+      (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+      (e.ctrlKey && e.key === 'U') ||
+      (e.metaKey && e.altKey && e.key === 'I')
+    ) {
+      e.preventDefault();
+    }
+  });
+
+  // Blur sensitive data when window loses focus
+  window.addEventListener('blur', () => {
+    const sensitiveElements = document.querySelectorAll('[data-sensitive="true"]');
+    sensitiveElements.forEach(el => {
+      el.classList.add('blurred');
+    });
+  });
+
+  window.addEventListener('focus', () => {
+    const sensitiveElements = document.querySelectorAll('[data-sensitive="true"]');
+    sensitiveElements.forEach(el => {
+      el.classList.remove('blurred');
+    });
+  });
+};
+
 // Protected route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isOnboarded } = useUser();
@@ -28,6 +65,9 @@ const AppContent: React.FC = () => {
   });
   
   useEffect(() => {
+    // Apply security measures
+    disableInspect();
+    
     // Apply dark mode class to document
     if (darkMode) {
       document.documentElement.classList.add('dark');
@@ -36,6 +76,30 @@ const AppContent: React.FC = () => {
     }
     // Save preference
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
+    
+    // Add production-only error handling
+    if (import.meta.env.PROD) { // Changed from process.env.NODE_ENV to Vite's import.meta.env
+      window.onerror = (message, source, lineno, colno, error) => {
+        console.error('An error occurred:', { message, source, lineno, colno, error });
+        return true; // Prevent default error handling
+      };
+    }
+    
+    // Cleanup event listeners
+    return () => {
+      document.removeEventListener('contextmenu', (e) => e.preventDefault());
+      document.removeEventListener('keydown', (e) => {
+        if (
+          e.key === 'F12' ||
+          (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+          (e.ctrlKey && e.shiftKey && e.key === 'J') ||
+          (e.ctrlKey && e.key === 'U') ||
+          (e.metaKey && e.altKey && e.key === 'I')
+        ) {
+          e.preventDefault();
+        }
+      });
+    };
   }, [darkMode]);
 
   const toggleDarkMode = (): void => {
@@ -67,6 +131,18 @@ const AppContent: React.FC = () => {
 };
 
 function App() {
+  // Add CSP meta tag dynamically
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.httpEquiv = "Content-Security-Policy";
+    meta.content = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;";
+    document.head.appendChild(meta);
+    
+    return () => {
+      document.head.removeChild(meta);
+    };
+  }, []);
+
   return (
     <UserProvider>
       <AppContent />

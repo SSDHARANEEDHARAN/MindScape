@@ -26,6 +26,7 @@
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/axios": "^0.9.36",
+    "@types/node": "^22.15.3",
     "@types/react": "^18.3.5",
     "@types/react-circular-progressbar": "^1.0.2",
     "@types/react-dom": "^18.3.0",

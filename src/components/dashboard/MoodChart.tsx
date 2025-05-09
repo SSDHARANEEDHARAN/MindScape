@@ -91,19 +91,19 @@ const analyzeMentalHealth = (userData: UserData | null): MoodData[] => {
   };
 
   const calculateFoodScore = (morningFood?: string, eveningFood?: string) => {
-    const healthyKeywords = ['vegetable', 'fruit', 'whole grain', 'lean protein', 'healthy'];
-    const unhealthyKeywords = ['fast food', 'processed', 'sugary', 'fried', 'junk'];
-    
+    const healthyKeywords = ['Milk', 'Health Drinks', 'Tiffen', 'Natural Mix'];
+    const unhealthyKeywords = ['Junk Food', 'Hotel Foods', 'Fries'];
+
     const analyzeMeal = (meal?: string) => {
       if (!meal) return 5;
       const isHealthy = healthyKeywords.some(keyword => meal.toLowerCase().includes(keyword));
       const isUnhealthy = unhealthyKeywords.some(keyword => meal.toLowerCase().includes(keyword));
-      
+
       if (isHealthy) return 9;
       if (isUnhealthy) return 2;
       return 5;
     };
-    
+
     const breakfastScore = analyzeMeal(morningFood);
     const dinnerScore = analyzeMeal(eveningFood);
     return (breakfastScore + dinnerScore) / 2;
@@ -128,12 +128,12 @@ const analyzeMentalHealth = (userData: UserData | null): MoodData[] => {
   let stress = (0.4 * screenScore) - (0.3 * sleepScore) - (0.2 * foodScore) + (0.1 * ageScore) + 4;
   let happiness = (0.3 * sleepScore) + (0.2 * foodScore) + (0.1 * ageScore) - (0.3 * screenScore) + 5;
   let sadness = (0.3 * screenScore) - (0.2 * sleepScore) - (0.2 * foodScore) + (0.1 * ageScore) + 3;
-  
+
   // Ensure values are within reasonable bounds
   stress = Math.max(0, Math.min(10, stress));
   happiness = Math.max(0, Math.min(10, happiness));
   sadness = Math.max(0, Math.min(10, sadness));
-  
+
   // Calculate neutrality based on the formula
   let neutrality = 10 - Math.abs(happiness - sadness);
   neutrality = Math.max(0, Math.min(10, neutrality));
@@ -195,7 +195,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
   const [analysisResult, setAnalysisResult] = useState('');
   const [showComparison, setShowComparison] = useState(false);
 
-  const getSessionKey = useCallback((key: string) => 
+  const getSessionKey = useCallback((key: string) =>
     userData?.id ? `session_mood_${key}_${userData.id}` : `session_mood_${key}`,
     [userData?.id]
   );
@@ -207,13 +207,13 @@ const MoodChart: React.FC<MoodChartProps> = ({
     const cachedData = sessionStorage.getItem(sessionKey);
 
     if (cachedData) {
-      const { 
-        aiData: cachedAiData, 
-        nlmData: cachedNlmData, 
-        datasetComparison: cachedDataset, 
-        analysisResult: cachedAnalysis 
+      const {
+        aiData: cachedAiData,
+        nlmData: cachedNlmData,
+        datasetComparison: cachedDataset,
+        analysisResult: cachedAnalysis
       } = JSON.parse(cachedData);
-      
+
       setAiData(cachedAiData);
       setNlmData(cachedNlmData);
       setDatasetComparison(cachedDataset);
@@ -230,25 +230,25 @@ const MoodChart: React.FC<MoodChartProps> = ({
 
       let analysis = "Based on your profile: ";
       const recommendations = [];
-      
+
       if (userData.sleepTime && userData.sleepTime < 7) {
         analysis += "Your sleep duration seems low, which may affect mood. ";
         recommendations.push("Aim for 7-9 hours of sleep");
       }
-      
+
       if (userData.screenTime && userData.screenTime > 6) {
         analysis += "High screen time can contribute to stress. ";
         recommendations.push("Take regular screen breaks");
       }
-      
+
       if (userData.age && userData.age < 25) {
         analysis += "Young adults often experience more mood variability. ";
       }
-      
+
       if (!analysis.includes("sleep") && !analysis.includes("screen")) {
         analysis += "Your lifestyle factors appear balanced. ";
       }
-      
+
       if (recommendations.length > 0) {
         analysis += "Recommendations: " + recommendations.join(", ") + ".";
       } else {
@@ -261,9 +261,9 @@ const MoodChart: React.FC<MoodChartProps> = ({
         datasetComparison: datasetResult,
         analysisResult: analysis
       };
-      
+
       sessionStorage.setItem(sessionKey, JSON.stringify(sessionData));
-      
+
       setAiData(aiAnalysis);
       setNlmData(nlmResult);
       setDatasetComparison(datasetResult);
@@ -282,82 +282,82 @@ const MoodChart: React.FC<MoodChartProps> = ({
   const data = useMemo(() => analyzeMentalHealth(userData), [userData]);
 
   const timeSeriesData = useMemo(() => [
-    { 
-      name: 'Mon', 
-      happy: data[0].percentage, 
-      sad: data[1].percentage, 
-      stressed: data[2].percentage, 
+    {
+      name: 'Mon',
+      happy: data[0].percentage,
+      sad: data[1].percentage,
+      stressed: data[2].percentage,
       neutral: data[3].percentage,
-      aiHappy: aiData[0]?.percentage || 0, 
-      aiSad: aiData[1]?.percentage || 0, 
-      aiStressed: aiData[2]?.percentage || 0, 
-      aiNeutral: aiData[3]?.percentage || 0 
+      aiHappy: aiData[0]?.percentage || 0,
+      aiSad: aiData[1]?.percentage || 0,
+      aiStressed: aiData[2]?.percentage || 0,
+      aiNeutral: aiData[3]?.percentage || 0
     },
-    { 
-      name: 'Tue', 
-      happy: data[0].percentage - 5, 
-      sad: data[1].percentage + 5, 
-      stressed: data[2].percentage, 
+    {
+      name: 'Tue',
+      happy: data[0].percentage - 5,
+      sad: data[1].percentage + 5,
+      stressed: data[2].percentage,
       neutral: data[3].percentage,
-      aiHappy: (aiData[0]?.percentage || 0) - 5, 
-      aiSad: (aiData[1]?.percentage || 0) + 5, 
-      aiStressed: aiData[2]?.percentage || 0, 
-      aiNeutral: aiData[3]?.percentage || 0 
+      aiHappy: (aiData[0]?.percentage || 0) - 5,
+      aiSad: (aiData[1]?.percentage || 0) + 5,
+      aiStressed: aiData[2]?.percentage || 0,
+      aiNeutral: aiData[3]?.percentage || 0
     },
-    { 
-      name: 'Wed', 
-      happy: data[0].percentage - 10, 
-      sad: data[1].percentage, 
-      stressed: data[2].percentage + 10, 
+    {
+      name: 'Wed',
+      happy: data[0].percentage - 10,
+      sad: data[1].percentage,
+      stressed: data[2].percentage + 10,
       neutral: data[3].percentage,
-      aiHappy: (aiData[0]?.percentage || 0) - 10, 
-      aiSad: aiData[1]?.percentage || 0, 
-      aiStressed: (aiData[2]?.percentage || 0) + 10, 
-      aiNeutral: aiData[3]?.percentage || 0 
+      aiHappy: (aiData[0]?.percentage || 0) - 10,
+      aiSad: aiData[1]?.percentage || 0,
+      aiStressed: (aiData[2]?.percentage || 0) + 10,
+      aiNeutral: aiData[3]?.percentage || 0
     },
-    { 
-      name: 'Thu', 
-      happy: data[0].percentage + 5, 
-      sad: data[1].percentage - 5, 
-      stressed: data[2].percentage - 5, 
+    {
+      name: 'Thu',
+      happy: data[0].percentage + 5,
+      sad: data[1].percentage - 5,
+      stressed: data[2].percentage - 5,
       neutral: data[3].percentage + 5,
-      aiHappy: (aiData[0]?.percentage || 0) + 5, 
-      aiSad: (aiData[1]?.percentage || 0) - 5, 
-      aiStressed: (aiData[2]?.percentage || 0) - 5, 
-      aiNeutral: (aiData[3]?.percentage || 0) + 5 
+      aiHappy: (aiData[0]?.percentage || 0) + 5,
+      aiSad: (aiData[1]?.percentage || 0) - 5,
+      aiStressed: (aiData[2]?.percentage || 0) - 5,
+      aiNeutral: (aiData[3]?.percentage || 0) + 5
     },
-    { 
-      name: 'Fri', 
-      happy: data[0].percentage + 10, 
-      sad: data[1].percentage - 10, 
-      stressed: data[2].percentage, 
+    {
+      name: 'Fri',
+      happy: data[0].percentage + 10,
+      sad: data[1].percentage - 10,
+      stressed: data[2].percentage,
       neutral: data[3].percentage,
-      aiHappy: (aiData[0]?.percentage || 0) + 10, 
-      aiSad: (aiData[1]?.percentage || 0) - 10, 
-      aiStressed: aiData[2]?.percentage || 0, 
-      aiNeutral: aiData[3]?.percentage || 0 
+      aiHappy: (aiData[0]?.percentage || 0) + 10,
+      aiSad: (aiData[1]?.percentage || 0) - 10,
+      aiStressed: aiData[2]?.percentage || 0,
+      aiNeutral: aiData[3]?.percentage || 0
     },
-    { 
-      name: 'Sat', 
-      happy: data[0].percentage + 15, 
-      sad: data[1].percentage - 5, 
-      stressed: data[2].percentage - 10, 
+    {
+      name: 'Sat',
+      happy: data[0].percentage + 15,
+      sad: data[1].percentage - 5,
+      stressed: data[2].percentage - 10,
       neutral: data[3].percentage,
-      aiHappy: (aiData[0]?.percentage || 0) + 15, 
-      aiSad: (aiData[1]?.percentage || 0) - 5, 
-      aiStressed: (aiData[2]?.percentage || 0) - 10, 
-      aiNeutral: aiData[3]?.percentage || 0 
+      aiHappy: (aiData[0]?.percentage || 0) + 15,
+      aiSad: (aiData[1]?.percentage || 0) - 5,
+      aiStressed: (aiData[2]?.percentage || 0) - 10,
+      aiNeutral: aiData[3]?.percentage || 0
     },
-    { 
-      name: 'Sun', 
-      happy: data[0].percentage, 
-      sad: data[1].percentage, 
-      stressed: data[2].percentage, 
+    {
+      name: 'Sun',
+      happy: data[0].percentage,
+      sad: data[1].percentage,
+      stressed: data[2].percentage,
       neutral: data[3].percentage,
-      aiHappy: aiData[0]?.percentage || 0, 
-      aiSad: aiData[1]?.percentage || 0, 
-      aiStressed: aiData[2]?.percentage || 0, 
-      aiNeutral: aiData[3]?.percentage || 0 
+      aiHappy: aiData[0]?.percentage || 0,
+      aiSad: aiData[1]?.percentage || 0,
+      aiStressed: aiData[2]?.percentage || 0,
+      aiNeutral: aiData[3]?.percentage || 0
     }
   ], [data, aiData]);
 
@@ -367,11 +367,10 @@ const MoodChart: React.FC<MoodChartProps> = ({
         <button
           key={type}
           onClick={() => onChartTypeChange?.(type as ChartType)}
-          className={`p-2 rounded-md flex items-center transition-colors ${
-            chartType === type
+          className={`p-2 rounded-md flex items-center transition-colors ${chartType === type
               ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300'
               : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-          }`}
+            }`}
         >
           {type === 'circular' && <PieChartIcon className="h-4 w-4 mr-1" />}
           {type === 'percentage' && <Percent className="h-4 w-4 mr-1" />}
@@ -382,11 +381,10 @@ const MoodChart: React.FC<MoodChartProps> = ({
       ))}
       <button
         onClick={() => setShowComparison(!showComparison)}
-        className={`p-2 rounded-md flex items-center transition-colors ${
-          showComparison
+        className={`p-2 rounded-md flex items-center transition-colors ${showComparison
             ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
             : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-        }`}
+          }`}
       >
         <span className="text-sm">AI Comparison</span>
       </button>
@@ -459,7 +457,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
                   {(showComparison ? aiData : data).map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={showComparison 
+                      fill={showComparison
                         ? COLORS[`ai${entry.category.charAt(0).toUpperCase() + entry.category.slice(1)}` as keyof typeof COLORS]
                         : COLORS[entry.category as keyof typeof COLORS]}
                     />
@@ -492,7 +490,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
                     className="h-2.5 rounded-full transition-all duration-1000"
                     style={{
                       width: `${entry.percentage}%`,
-                      backgroundColor: showComparison 
+                      backgroundColor: showComparison
                         ? COLORS[`ai${entry.category.charAt(0).toUpperCase() + entry.category.slice(1)}` as keyof typeof COLORS]
                         : COLORS[entry.category as keyof typeof COLORS]
                     }}
@@ -598,7 +596,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
         </h2>
         {renderChartSelector()}
       </div>
-      
+
       <div className="h-64 w-full">
         {isLoading ? (
           <div className="h-full flex items-center justify-center">
@@ -636,9 +634,9 @@ const MoodChart: React.FC<MoodChartProps> = ({
           </span>
         </div>
       </div>
-      
+
       {showComparison && !isLoading && renderComparisonChart()}
-      
+
       {analysisResult && !showComparison && (
         <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
           <h3 className="font-semibold mb-2">AI Insights</h3>

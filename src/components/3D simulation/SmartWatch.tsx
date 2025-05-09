@@ -9,16 +9,16 @@ import {
 } from 'lucide-react';
 
 // Import sound effects
-import alarmSound from '../music/Notification/Best Notification Tone.mp3';
-import beepSound from '../music/Notification/notification.mp3';
+import alarmSound from '../music/Notification/Iphone - Ting _ Message.mp3';
+import beepSound from '../music/Notification/Iphone - Ting _ Message.mp3';
 import heartbeatSound from '../music/Notification/heartbeat.mp3';
-import chargeSound from '../music/Notification/notification.mp3';
-import dischargeSound from '../music/Notification/notification.mp3';
+import chargeSound from '../music/Notification/Iphone - Ting _ Message.mp3';
+import dischargeSound from '../music/Notification/Iphone - Ting _ Message.mp3';
 
 // Import music files
-import mindscapeTheme from '../music/Khadgam - Love Failure BGM.mp3';
-import relaxingWaves from '../music/Khadgam - Love Failure BGM.mp3';
-import focusMode from '../music/Khadgam - Love Failure BGM.mp3';
+import mindscapeTheme from '../music/Deerane.mp3';
+import relaxingWaves from '../music/Aagasam-MassTamilan.io.mp3';
+import focusMode from '../music/Paaraa.mp3';
 
 // Import default wallpaper
 import defaultWallpaper from '../3D simulation/IMAGES/IMAGES.png';
@@ -828,16 +828,16 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
       {hasUnreadNotifications ? (
         <BellDot
           size={14}
-          className={`${darkMode ? 'text-red-400' : 'text-red-500'} cursor-pointer`}
+          className={`${darkMode ?  'text-red-500' : 'dark:text-red-400'} cursor-pointer`}
         />
       ) : (
         <Bell
           size={14}
-          className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} cursor-pointer`}
+          className={`${darkMode ?  'text-gray-500':'dark:text-gray-400' } cursor-pointer`}
         />
       )}
       {hasUnreadNotifications && (
-        <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 ${darkMode ? 'bg-red-400' : 'bg-red-500'} rounded-full border ${darkMode ? 'border-gray-800' : 'border-white'}`}></div>
+        <div className={`absolute -top-0.5 -right-0.5 w-2 h-2 ${darkMode ? 'bg-red-400' : 'dark:bg-red-500'} rounded-full border ${darkMode ? 'border-gray-800' : 'border-white'}`}></div>
       )}
     </div>
   ), [hasUnreadNotifications, markAllAsRead, darkMode]);
@@ -847,7 +847,7 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
     if (!showNotificationPopup || !activePopupNotification) return null;
 
     return (
-      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${darkMode ?  'dark:bg-white':'bg-gray-800'} p-4 rounded-lg shadow-xl z-50 w-64`}>
+      <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${darkMode ?  'dark:bg-white':'bg-gray-700'} p-4 rounded-lg shadow-xl z-50 w-64`}>
         <div className="flex items-start gap-2">
           {activePopupNotification.type === 'health' ? (
             <Heart size={20} className="text-red-500 mt-0.5" />
@@ -859,7 +859,7 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
             <Bell size={20} className="text-blue-500 mt-0.5" />
           )}
           <div className="flex-1">
-            <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-800'}`}>{activePopupNotification.message}</p>
+            <p className={`font-medium ${darkMode ?  'text-gray-800' : 'dark:text-white'}`}>{activePopupNotification.message}</p>
             <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'} mt-1`}>
               {formatIndianTime(activePopupNotification.timestamp)}
             </p>
@@ -1032,7 +1032,7 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
   const renderView = useCallback(() => {
     if (!isPoweredOn) {
       return (
-        <div className={`flex flex-col items-center justify-center h-full p-4 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`flex flex-col items-center justify-center h-full p-4 ${darkMode ?   'bg-white' : 'bg-gray-400'}`}>
           <Power className={`w-16 h-16 ${darkMode ? 'text-gray-500' : 'text-gray-400'} animate-pulse`} />
           <p className={`mt-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'} text-center`}>
             {systemStatus.charging ? `Charging ${systemStatus.batteryLevel}%` : 'Powered off'}
@@ -1130,7 +1130,7 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
 
               <div>
                 <label className={`block text-sm mb-2 ${darkMode ? 'text-gray-300' : ''}`}>System Status</label>
-                <div className={`p-3 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-lg`}>
+                <div className={`p-3 ${darkMode ?  'bg-gray-800' : 'bg-gray-100' } rounded-lg`}>
                   <div className={`flex items-center gap-2 mb-1 ${darkMode ? 'text-gray-300' : ''}`}>
                     <Battery size={16} />
                     <span>Battery: {systemStatus.batteryLevel}% ({systemStatus.charging ? 'Charging' : 'Discharging'})</span>
@@ -1474,14 +1474,14 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
           <Watch className={darkMode ? 'text-blue-400' : 'text-blue-500'} size={32} />
           <h1 className={`text-2xl font-bold ${darkMode ? 'text-blue-400' : 'text-blue-500'}`}>AI Smart Watch</h1>
         </div>
-        <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+        <p className={darkMode ? 'text-gray-400' : 'dark:text-gray-600'}>
           Experience the future of communication visually
         </p>
       </div>
 
       {/* Watch body - increased size */}
       <div className={`relative w-96 h-[28rem] rounded-3xl border-8 ${
-        darkMode ? 'border-gray-600' : 'border-gray-300'
+        darkMode ?  'border-gray-300' :'dark:border-gray-600'
       } bg-white shadow-xl overflow-hidden ${
         !isPoweredOn ? 'opacity-80' : ''
       } ${isVibrating ? 'animate-vibrate' : ''}`}
@@ -1546,8 +1546,8 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
             <button
               onClick={() => setNotificationMode('auto')}
               className={`flex-1 py-3 rounded-lg ${
-                notificationMode === 'auto' ? 'bg-blue-600 text-white' : 
-                darkMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-300'
+                notificationMode === 'auto' ? 'bg-blue-600  text-gray-200' : 
+                darkMode ? 'bg-gray-700  text-white' : 'bg-gray-300'
               }`}
             >
               Auto Mode
@@ -1578,7 +1578,7 @@ const SmartWatch: React.FC<SmartWatchProps> = ({ darkMode }) => {
                 onChange={(e) => setManualMessage(e.target.value)}
                 placeholder="Enter your message"
                 className={`flex-1 p-3 border rounded-lg ${
-                  darkMode ? 'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400' : ''
+                  darkMode ? 'bg-gray-700 border-gray-600 dark:text-gray-300 placeholder-gray-400' : ' dark:text-black'
                 }`}
               />
               <button
