@@ -1,53 +1,35 @@
- 
 import { UserData, HealthInsight } from '../types/types';
 
 const API_KEY = 'AIzaSyBy0KCb5kFziYZC5gXkFgB3mXEmMzsatTE';
 const AI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
-// Session storage for consistent metrics during a session
 let sessionHealthMetrics: HealthInsight[] | null = null;
 
 export const getHealthMetrics = async (userData: UserData): Promise<HealthInsight[]> => {
-  // Return cached metrics if available
-  if (sessionHealthMetrics) {
-    return sessionHealthMetrics;
-  }
+  if (sessionHealthMetrics) return sessionHealthMetrics;
 
-  // Calculate base metrics
-  const baseMetrics = calculateBaseHealthMetrics(userData);
-
-  // Enhance with AI insights
+  const baseMetrics = calculateComprehensiveHealthMetrics(userData);
   const aiEnhancedMetrics = await getAIHealthInsights(baseMetrics, userData);
 
-  // Cache the results for the session
   sessionHealthMetrics = aiEnhancedMetrics;
-
   return aiEnhancedMetrics;
 };
 
-const calculateBaseHealthMetrics = (userData: UserData): HealthInsight[] => {
-  // Calculate BMI
-  const heightInMeters = userData.height / 100;
-  const bmi = userData.weight / (heightInMeters * heightInMeters);
-  
-  // Calculate sleep quality score (0-100)
-  const sleepQuality = Math.min(100, Math.max(0, 
-    (userData.sleepTime / 8) * 80 + // 80% weight on sleep duration
-    (1 - (userData.screenTime / 10)) * 20 // 20% weight on screen time reduction
-  ));
-
-  // Calculate nutrition score
-  const nutritionScore = calculateNutritionScore(userData.morningFood, userData.eveningFood);
+const calculateComprehensiveHealthMetrics = (userData: UserData): HealthInsight[] => {
+  const sleepQuality = calculateSleepQualityScore(userData);
+  const nutritionScore = calculateNutritionScore(userData);
+  const physicalHealth = calculatePhysicalHealthScore(userData, sleepQuality, nutritionScore);
+  const mentalWellbeing = calculateMentalWellbeingScore(userData, sleepQuality);
 
   return [
     {
       category: 'Physical Health',
-      score: calculatePhysicalHealthScore(bmi),
+      score: physicalHealth,
       recommendation: ''
     },
     {
       category: 'Sleep Quality',
-      score: Math.round(sleepQuality),
+      score: sleepQuality,
       recommendation: ''
     },
     {
@@ -57,62 +39,128 @@ const calculateBaseHealthMetrics = (userData: UserData): HealthInsight[] => {
     },
     {
       category: 'Mental Wellbeing',
-      score: 70, // Placeholder, will be updated by AI
+      score: mentalWellbeing,
       recommendation: ''
     }
   ];
 };
 
-const calculatePhysicalHealthScore = (bmi: number): number => {
-  if (bmi < 18.5) return 60; // Underweight
-  if (bmi >= 18.5 && bmi < 25) return 90; // Healthy
-  if (bmi >= 25 && bmi < 30) return 70; // Overweight
-  return 50; // Obese
+const calculatePhysicalHealthScore = (
+  userData: UserData,
+  sleepScore: number,
+  dietScore: number
+): number => {
+  // Calculate all components
+  const bmiScore = calculateBMIScore(userData.height, userData.weight) * 0.4;
+  const sleepComponent = (sleepScore / 100) * 0.2;
+  const dietComponent = (dietScore / 100) * 0.2;
+  const screenTimeScore = calculateScreenTimeScore(userData.screenTime) * 0.15;
+  const medicalBonus = calculateMedicalBonus(userData.medicalCheckups) * 0.05;
+
+  // Combine all components
+  const totalScore = Math.round(
+    (bmiScore + sleepComponent + dietComponent + screenTimeScore + medicalBonus) * 100
+  );
+
+  return Math.min(100, Math.max(0, totalScore));
 };
 
-const calculateNutritionScore = (morningFood: string, eveningFood: string): number => {
-  const healthyKeywords = ['fruits', 'vegetables', 'whole grains', 'lean protein', 'nuts'];
-  const unhealthyKeywords = ['fast food', 'processed', 'sugary', 'fried'];
+const calculateBMIScore = (height: number, weight: number): number => {
+  const heightInMeters = height / 100;
+  const bmi = weight / (heightInMeters * heightInMeters);
+
+  if (bmi < 18.5) return 60;  // Underweight
+  if (bmi < 25) return 90;    // Healthy
+  if (bmi < 30) return 70;    // Overweight
+  return 50;                  // Obese
+};
+
+const calculateScreenTimeScore = (screenTime: number): number => {
+  if (screenTime <= 2) return 100;
+  if (screenTime <= 4) return 80;
+  if (screenTime <= 6) return 60;
+  if (screenTime <= 8) return 40;
+  if (screenTime <= 10) return 20;
+  return 0;
+};
+
+const calculateMedicalBonus = (checkups: string[]): number => {
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  return checkups.some(c => new Date(c) > sixMonthsAgo) ? 100 : 0;
+};
+
+const calculateSleepQualityScore = (userData: UserData): number => {
+  const optimalSleepHours = 8;
+  const maxRecommendedScreenTime = 10;
   
-  let score = 70; // Base score
+  const sleepDurationScore = Math.min(70, 
+    Math.max(0, (userData.sleepTime / optimalSleepHours) * 70)
+  );
   
-  // Check morning food
-  if (healthyKeywords.some(keyword => morningFood.toLowerCase().includes(keyword))) {
-    score += 10;
-  }
-  if (unhealthyKeywords.some(keyword => morningFood.toLowerCase().includes(keyword))) {
-    score -= 15;
-  }
+  const screenTimePenalty = Math.min(30, 
+    (userData.screenTime / maxRecommendedScreenTime) * 30
+  );
   
-  // Check evening food
-  if (healthyKeywords.some(keyword => eveningFood.toLowerCase().includes(keyword))) {
-    score += 10;
-  }
-  if (unhealthyKeywords.some(keyword => eveningFood.toLowerCase().includes(keyword))) {
-    score -= 15;
-  }
+  return Math.round(sleepDurationScore + (30 - screenTimePenalty));
+};
+
+const calculateNutritionScore = (userData: UserData): number => {
+  const healthyKeywords = [
+    'fruits', 'vegetables', 'whole grains', 'lean protein', 
+    'nuts', 'salad', 'fish', 'chicken', 'yogurt', 'legumes'
+  ];
+  
+  const unhealthyKeywords = [
+    'fast food', 'processed', 'sugary', 'fried', 
+    'junk', 'soda', 'candy', 'dessert', 'pastries'
+  ];
+  
+  let score = 70;
+  
+  const morningMeal = userData.morningFood.toLowerCase();
+  const isHealthyMorning = healthyKeywords.some(k => morningMeal.includes(k));
+  const isUnhealthyMorning = unhealthyKeywords.some(k => morningMeal.includes(k));
+  
+  if (isHealthyMorning) score += 15;
+  if (isUnhealthyMorning) score -= 20;
+  
+  const eveningMeal = userData.eveningFood.toLowerCase();
+  const isHealthyEvening = healthyKeywords.some(k => eveningMeal.includes(k));
+  const isUnhealthyEvening = unhealthyKeywords.some(k => eveningMeal.includes(k));
+  
+  if (isHealthyEvening) score += 15;
+  if (isUnhealthyEvening) score -= 20;
   
   return Math.max(0, Math.min(100, score));
 };
 
+const calculateMentalWellbeingScore = (userData: UserData, sleepQuality: number): number => {
+  const sleepImpact = sleepQuality * 0.4;
+  const screenTimeImpact = (100 - (userData.screenTime * 5)) * 0.3;
+  const nutritionImpact = (calculateNutritionScore(userData) / 100) * 30;
+  
+  return Math.round(sleepImpact + screenTimeImpact + nutritionImpact);
+};
+
 const getAIHealthInsights = async (metrics: HealthInsight[], userData: UserData): Promise<HealthInsight[]> => {
   try {
-    const prompt = `Given the following user health metrics and data, provide personalized recommendations for each category. 
-    Be concise but helpful. Format as bullet points starting with -.
+    const prompt = `As a health expert, analyze these metrics and provide specific recommendations:
     
-    User Data:
+    User Profile:
     - Age: ${userData.age}
     - Height: ${userData.height}cm
     - Weight: ${userData.weight}kg
-    - Morning food: ${userData.morningFood}
-    - Evening food: ${userData.eveningFood}
-    - Sleep time: ${userData.sleepTime} hours
-    - Screen time: ${userData.screenTime} hours
+    - Screen Time: ${userData.screenTime} hours/day
+    - Sleep: ${userData.sleepTime} hours/night
+    - Breakfast: ${userData.morningFood}
+    - Dinner: ${userData.eveningFood}
+    - Recent Checkups: ${userData.medicalCheckups.length > 0 ? 'Yes' : 'No'}
     
-    Current Health Metrics:
+    Health Metrics:
     ${metrics.map(m => `- ${m.category}: ${m.score}/100`).join('\n')}
     
-    Provide recommendations for each category:`;
+    Provide concise, actionable recommendations for each category:`;
 
     const response = await fetch(`${AI_ENDPOINT}?key=${API_KEY}`, {
       method: 'POST',
@@ -131,20 +179,18 @@ const getAIHealthInsights = async (metrics: HealthInsight[], userData: UserData)
     const data = await response.json();
     const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-    // Parse AI response and update recommendations
     return metrics.map(metric => {
       const categoryPattern = new RegExp(`${metric.category}.*?:?\\s*([^-]+)(?=-|$)`, 'i');
       const match = aiResponse.match(categoryPattern);
       
       return {
         ...metric,
-        recommendation: match ? match[1].trim() : 'No specific recommendation available'
+        recommendation: match ? match[1].trim() : getFallbackRecommendation(metric.category, metric.score)
       };
     });
 
   } catch (error) {
     console.error('AI API Error:', error);
-    // Fallback recommendations
     return metrics.map(metric => ({
       ...metric,
       recommendation: getFallbackRecommendation(metric.category, metric.score)
@@ -155,35 +201,34 @@ const getAIHealthInsights = async (metrics: HealthInsight[], userData: UserData)
 const getFallbackRecommendation = (category: string, score: number): string => {
   switch(category) {
     case 'Physical Health':
-      return score > 80 
-        ? 'Maintain your current healthy habits' 
-        : score > 60 
-          ? 'Consider increasing physical activity' 
-          : 'Consult with a healthcare provider for personalized advice';
+      if (score > 85) return 'Excellent physical health! Maintain your current routine.';
+      if (score > 70) return 'Good physical health. Consider adding strength training 2-3 times weekly.';
+      if (score > 50) return 'Needs improvement. Aim for 150 mins of moderate exercise weekly.';
+      return 'Consult a healthcare provider for personalized advice.';
+    
     case 'Sleep Quality':
-      return score > 80 
-        ? 'Your sleep habits are excellent' 
-        : score > 60 
-          ? 'Try to maintain consistent sleep schedule' 
-          : 'Consider reducing screen time before bed and creating a bedtime routine';
+      if (score > 85) return 'Excellent sleep habits! Keep your consistent schedule.';
+      if (score > 70) return 'Good sleep. Try reducing screen time before bed by 30 minutes.';
+      if (score > 50) return 'Sleep needs work. Establish a regular bedtime routine.';
+      return 'Severe sleep issues detected. Consider professional evaluation.';
+    
     case 'Nutrition':
-      return score > 80 
-        ? 'Your diet is well-balanced' 
-        : score > 60 
-          ? 'Try incorporating more whole foods into your diet' 
-          : 'Consider consulting a nutritionist for dietary advice';
+      if (score > 85) return 'Excellent diet! Continue eating balanced meals.';
+      if (score > 70) return 'Good diet. Try adding more vegetables to your meals.';
+      if (score > 50) return 'Diet needs improvement. Reduce processed food intake.';
+      return 'Poor nutrition habits. Consider consulting a nutritionist.';
+    
     case 'Mental Wellbeing':
-      return score > 80 
-        ? 'Your mental wellbeing is strong' 
-        : score > 60 
-          ? 'Practice mindfulness techniques regularly' 
-          : 'Consider speaking with a mental health professional';
+      if (score > 85) return 'Great mental health! Keep practicing self-care.';
+      if (score > 70) return 'Good mental state. Try daily mindfulness exercises.';
+      if (score > 50) return 'Could be better. Reduce stress through regular breaks.';
+      return 'Mental health concerns detected. Consider speaking with a professional.';
+    
     default:
-      return 'Focus on balanced diet and regular exercise';
+      return 'Focus on balanced lifestyle habits for better health.';
   }
 };
 
-// Clear cache on logout
 export const clearHealthMetricsCache = () => {
   sessionHealthMetrics = null;
 };

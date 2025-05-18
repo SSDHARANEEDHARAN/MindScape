@@ -21,12 +21,12 @@ const PersonalInfoStep: React.FC<PersonalInfoStepProps> = ({
 
   const inputClasses = `w-full px-4 py-2 rounded-lg border focus:ring-2 focus:ring-indigo-500 focus:border-transparent ${
     darkMode
-      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400'
-      : 'bg-white border-gray-300 text-black'
+      ? 'bg-gray-800 border-gray-600 text-white placeholder-gray-400' 
+      : 'dark:bg-white border-gray-300 text-black'
   }`;
 
   const labelClasses = `block text-sm font-medium mb-1 ${
-    darkMode ? 'text-gray-300' : 'text-gray-800'
+    darkMode ? 'text-gray-300' : 'dark:text-gray-800'
   }`;
 
   return (

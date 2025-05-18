@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../context/UserContext';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { Moon, Sun, Activity, Bed, Smartphone } from 'lucide-react';
+import { Activity, Bed, Smartphone } from 'lucide-react';
 
 interface HealthInsight {
   category: string;
@@ -288,13 +288,6 @@ const HealthMetricsDashboard: React.FC<HealthMetricsDashboardProps> = ({ darkMod
     <div className={`rounded-lg p-4 max-w-md mx-auto transition-colors duration-300 shadow-xl ${
       darkMode ? 'bg-white' :'dark:bg-gray-800'
     }`}>
-      <h2 className={`text-xl font-semibold mb-4 flex items-center ${
-        darkMode ?  'text-gray-900' : 'dark:text-white' 
-      }`}>
-        {darkMode ? <Moon className="h-5 w-5 mr-2" /> : <Sun className="h-5 w-5 mr-2" />}
-        Health Insights
-      </h2>
-      
       <div className="space-y-4">
         {metrics.map((metric) => (
           <div key={metric.category} className={`rounded-lg p-4 transition-colors duration-300 shadow-lg ${
@@ -308,7 +301,7 @@ const HealthMetricsDashboard: React.FC<HealthMetricsDashboardProps> = ({ darkMod
                     cy="50" 
                     r="40" 
                     fill="none" 
-                    stroke={darkMode ? '#4B5563' : '#E5E7EB'} 
+                    stroke={darkMode ? '#E5E7EB' : '#4B5563'} 
                     strokeWidth="8"
                   />
                   <circle 

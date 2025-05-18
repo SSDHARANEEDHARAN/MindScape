@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useUser } from '../context/UserContext';
-import { BarChart2, PieChart, LineChart, Brain, ArrowUp, ArrowDown, Clock, Minimize, Maximize } from 'lucide-react';
+import { BarChart2, LineChart, Brain, ArrowUp, ArrowDown, Clock, Minimize, Maximize } from 'lucide-react';
 import MoodChart from '../dashboard/MoodChart';
 import HealthInsightCard from '../dashboard/HealthInsightCard';
 import { ChartType, Widget } from '../types/types';
@@ -138,7 +138,6 @@ const Dashboard: React.FC = () => {
             <>
               <div className="flex space-x-2 mb-4">
                 {renderChartIcon('bar', BarChart2)}
-                {renderChartIcon('pie', PieChart)}
                 {renderChartIcon('line', LineChart)}
               </div>
               <MoodChart 
@@ -346,42 +345,9 @@ const Dashboard: React.FC = () => {
         
       case 'social':
         return (
-          <>
+          <div>
             {renderWidget('social-media')}
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
-                <h2 className="text-lg font-semibold mb-4">Social Media Impact</h2>
-                <div className="space-y-4">
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 className="font-medium mb-2">Screen Time Analysis</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                      Your social media usage patterns will be analyzed soon.
-                    </p>
-                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                      <div className="bg-red-500 h-2 rounded-full" style={{ width: '75%' }}></div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                    <h3 className="font-medium mb-2">Content Recommendations</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                      Based on your mood patterns, we recommend:
-                    </p>
-                    <div className="space-y-2">
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                        <span className="text-sm">Motivational and positive stories</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                        <span className="text-sm">Nature and outdoor photography</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
+          </div>
         );
       
       default:

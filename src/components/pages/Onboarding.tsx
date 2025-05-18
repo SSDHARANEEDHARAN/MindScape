@@ -83,23 +83,23 @@ const Onboarding: React.FC<OnboardingProps> = ({ darkMode }) => {
   
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${
-      darkMode ? 'bg-gray-900' : 'bg-gray-50'
+      darkMode ?  'bg-gray-50' :'dark:bg-gray-900'
     }`}>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className={`inline-flex items-center justify-center p-3 rounded-full mb-4 ${
-            darkMode ? 'bg-indigo-900/50' : 'bg-indigo-100'
+            darkMode ? 'bg-indigo-100': 'dark:bg-indigo-900/50' 
           }`}>
-            <Brain className={`h-8 w-8 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`} />
+            <Brain className={`h-8 w-8 ${darkMode ? 'text-indigo-600' : 'dark:text-indigo-300'}`} />
           </div>
-          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Mindscape</h1>
-          <p className={`mt-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          <h1 className={`text-3xl font-bold ${darkMode ? 'text-gray-900' : 'dark:text-white'}`}>Mindscape</h1>
+          <p className={`mt-2 ${darkMode ? 'text-gray-600' : 'dark:text-gray-300'}`}>
             AI-Powered Mental Health Analysis
           </p>
         </div>
         
         <div className={`rounded-xl shadow-lg p-6 mb-8 transition-colors duration-300 ${
-          darkMode ? 'bg-gray-800' : 'bg-white'
+          darkMode ?  'bg-white' : 'dark:bg-gray-800'
         }`}>
           <div className="flex justify-between mb-8">
             {[1, 2, 3].map((i) => (
@@ -108,21 +108,21 @@ const Onboarding: React.FC<OnboardingProps> = ({ darkMode }) => {
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors duration-200 ${
                     i === step 
                       ? darkMode 
-                        ? 'bg-indigo-500 text-white' 
-                        : 'bg-indigo-600 text-white'
+                        ? 'bg-indigo-500 text-black' 
+                        : 'dark:bg-indigo-500 text-black'
                       : i < step 
                         ? darkMode 
-                          ? 'bg-indigo-900/50 text-indigo-300' 
-                          : 'bg-indigo-200 text-indigo-800'
+                          ?  'bg-indigo-400 text-indigo-800'
+                          :  'dark:bg-indigo-400/50 text-indigo-300'
                         : darkMode 
-                          ? 'bg-gray-700 text-gray-400' 
-                          : 'bg-gray-200 text-gray-500'
+                          ?  'bg-gray-200 text-gray-500' 
+                          :  'dark:bg-gray-600 text-gray-400' 
                   }`}
                 >
                   {i}
                 </div>
                 <span className={`text-xs mt-1 ${
-                  darkMode ? 'text-gray-300' : 'text-gray-600'
+                  darkMode ? 'text-gray-600' : 'dark:text-gray-300'
                 }`}>
                   {i === 1 ? 'Personal' : i === 2 ? 'Habits' : 'Devices'}
                 </span>

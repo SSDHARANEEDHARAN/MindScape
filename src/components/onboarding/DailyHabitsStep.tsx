@@ -114,13 +114,13 @@ const DailyHabitsStep: React.FC<DailyHabitsStepProps> = ({
   const baseInputClass = `w-full px-4 py-2 rounded-lg border focus:ring-2 focus:border-transparent ${
     darkMode
       ? 'bg-gray-800 text-white border-gray-600 focus:ring-indigo-400'
-      : 'bg-white text-black border-gray-300 focus:ring-indigo-500'
+      : 'dark:bg-white text-black border-gray-300 focus:ring-indigo-500'
   }`;
 
   const baseSelectClass = `w-full px-4 py-2 rounded-lg border focus:ring-2 focus:border-transparent ${
     darkMode
       ? 'bg-gray-800 text-white border-gray-600 focus:ring-indigo-400'
-      : 'bg-white text-black border-gray-300 focus:ring-indigo-500'
+      : 'dark:bg-white text-black border-gray-300 focus:ring-indigo-500'
   }`;
 
   const dropdownItemClass = `px-4 py-2 cursor-pointer ${

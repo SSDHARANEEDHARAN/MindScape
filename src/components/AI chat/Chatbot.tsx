@@ -154,15 +154,21 @@ const Chatbot: React.FC = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4 h-full flex flex-col">
-      <h2 className="text-lg font-semibold mb-4 flex items-center">
-        <Brain className="h-5 w-5 mr-2 text-indigo-600 dark:text-indigo-400" />
-        MindScape AI Assistant
-      </h2>
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 h-full flex flex-col border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center">
+          <div className="bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">
+            <Brain className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
+          </div>
+          <h2 className="text-lg font-semibold ml-3 text-gray-800 dark:text-white">
+            MindScape AI Assistant
+          </h2>
+        </div>
+      </div>
       
       <div 
         ref={chatBodyRef}
-        className="flex-1 overflow-y-auto mb-4 space-y-4"
+        className="flex-1 overflow-y-auto mb-4 space-y-4 p-2"
         style={{ maxHeight: '400px' }}
       >
         {messages
@@ -170,53 +176,57 @@ const Chatbot: React.FC = () => {
           .map((message, index) => (
             <div 
               key={index} 
-              className={`flex items-start ${message.role === 'user' ? 'justify-end' : ''}`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.role === 'model' && (
-                <div className="bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full">
-                  <Brain className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
-                </div>
-              )}
-              <div 
-                className={`ml-3 p-3 rounded-lg max-w-[80%] ${
-                  message.role === 'user' 
-                    ? 'bg-gray-200 dark:bg-gray-600' 
-                    : 'bg-indigo-50 dark:bg-indigo-900/50'
-                } ${
-                  message.isError ? 'border border-red-500' : ''
-                }`}
-              >
-                {message.text === 'Thinking...' ? (
-                  <div className="flex space-x-2">
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className={`flex max-w-[90%] ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                {message.role === 'model' && (
+                  <div className="flex-shrink-0 bg-indigo-100 dark:bg-indigo-900 p-2 rounded-full self-start">
+                    <Brain className="h-5 w-5 text-indigo-600 dark:text-indigo-300" />
                   </div>
-                ) : (
-                  <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                 )}
+                <div 
+                  className={`mx-2 p-3 rounded-xl ${
+                    message.role === 'user' 
+                      ? 'bg-indigo-600 text-white rounded-tr-none' 
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white rounded-tl-none'
+                  } ${
+                    message.isError ? 'border border-red-500' : ''
+                  }`}
+                >
+                  {message.text === 'Thinking...' ? (
+                    <div className="flex space-x-2">
+                      <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap">{message.text}</p>
+                  )}
+                </div>
               </div>
             </div>
           ))}
       </div>
       
-      <div className="flex">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Type your message..."
-          className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          disabled={loading}
-        />
-        <button
-          onClick={sendMessage}
-          disabled={loading || !input.trim()}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-r-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center"
-        >
-          <Send className="h-4 w-4" />
-        </button>
+      <div className="mt-auto">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Type your message..."
+            className="flex-1 p-2 bg-transparent focus:outline-none dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            disabled={loading}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={loading || !input.trim()}
+            className={`p-2 rounded-lg ${loading || !input.trim() ? 'text-gray-400' : 'text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900'}`}
+          >
+            <Send className="h-5 w-5" />
+          </button>
+        </div>
       </div>
     </div>
   );

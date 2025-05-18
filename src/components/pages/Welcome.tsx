@@ -8,7 +8,7 @@ interface WelcomeProps {
 
 const Welcome: React.FC<WelcomeProps> = ({ darkMode }) => {
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gradient-to-br from-gray-900 to-indigo-900' : 'bg-gradient-to-br from-indigo-50 to-purple-50'}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${darkMode ?   'bg-gradient-to-br from-indigo-50 to-purple-50' : 'dark:bg-gradient-to-br from-gray-900 to-indigo-900' }`}>
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden opacity-20 dark:opacity-10 pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -31,33 +31,33 @@ const Welcome: React.FC<WelcomeProps> = ({ darkMode }) => {
         {/* Navigation */}
         <nav className="flex justify-between items-center pt-6">
           <div className="flex items-center">
-            <Brain className={`h-8 w-8 ${darkMode ? 'text-indigo-300' : 'text-indigo-600'}`} />
-            <span className={`ml-2 text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>MindScape</span>
+            <Brain className={`h-8 w-8 ${darkMode ? 'text-indigo-600' : 'text-indigo-300'}`} />
+            <span className={`ml-2 text-xl font-bold ${darkMode ? 'text-gray-900':'dark:text-white' }`}>MindScape</span>
           </div>
         </nav>
 
         <header className="pt-16 pb-24 text-center">
           <div
             className={`inline-flex items-center justify-center p-4 rounded-full mb-6 transition-all duration-500 transform hover:rotate-12 ${
-              darkMode ? 'bg-indigo-900 bg-opacity-50' : 'bg-indigo-100'
+              darkMode ?   'bg-indigo-100' :'dark:bg-indigo-900 bg-opacity-50'
             }`}
           >
             <Brain
               className={`h-12 w-12 transition-colors duration-500 ${
-                darkMode ? 'text-indigo-300' : 'text-indigo-600'
+                darkMode ? 'text-indigo-600' : 'dark:text-indigo-300'
               }`}
             />
           </div>
           <h1
             className={`text-4xl sm:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r ${
-              darkMode ? 'from-indigo-300 to-purple-400' : 'from-indigo-600 to-purple-600'
+              darkMode ? 'from-indigo-600 to-purple-600' : 'dark:from-indigo-300 to-purple-400'
             }`}
           >
             MindScape
           </h1>
           <p
             className={`text-xl max-w-3xl mx-auto transition-colors duration-300 ${
-              darkMode ? 'text-indigo-100' : 'text-gray-600'
+              darkMode ? 'text-indigo-600' : 'dark:text-gray-100'
             }`}
           >
             AI-powered mental health analysis that integrates social media sentiment and wearable device data to provide
@@ -80,7 +80,7 @@ const Welcome: React.FC<WelcomeProps> = ({ darkMode }) => {
         <section className="py-12">
           <h2
             className={`text-3xl font-bold text-center mb-12 transition-colors duration-300 ${
-              darkMode ? 'text-white' : 'text-gray-900'
+              darkMode ?  'text-gray-900' : 'dark:text-white'
             }`}
           >
             How It Works
@@ -112,7 +112,7 @@ const Welcome: React.FC<WelcomeProps> = ({ darkMode }) => {
               <div
                 key={index}
                 className={`rounded-xl shadow-md p-6 text-center transition-all duration-300 transform hover:-translate-y-2 ${
-                  darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+                  darkMode ?  'bg-white' : 'dark:bg-blue-100 border'
                 }`}
               >
                 <div
@@ -146,14 +146,14 @@ const Welcome: React.FC<WelcomeProps> = ({ darkMode }) => {
         <section className="py-12">
           <div
             className={`rounded-xl shadow-md overflow-hidden transition-colors duration-300 ${
-              darkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
+              darkMode ?  'bg-white' : 'dark:bg-blue-100 border'
             }`}
           >
             <div className="md:flex">
               <div className="md:flex-1 p-8">
                 <h2
                   className={`text-2xl font-bold mb-4 ${
-                    darkMode ? 'text-white' : 'text-gray-900'
+                    darkMode ? 'text-white' : 'text-black'
                   }`}
                 >
                   AI-Powered Chatbot
@@ -263,7 +263,7 @@ const Welcome: React.FC<WelcomeProps> = ({ darkMode }) => {
         <section className="py-12 text-center">
           <h2
             className={`text-3xl font-bold mb-6 transition-colors duration-300 ${
-              darkMode ? 'text-white' : 'text-gray-900'
+              darkMode ?  'text-gray-900' : 'dark:text-white'
             }`}
           >
             Ready to improve your mental well-being?

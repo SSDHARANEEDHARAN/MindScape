@@ -17,6 +17,12 @@ import { SystemConfig } from '../Admin/Components/SystemConfig';
 import { Activity, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// ThingSpeak Configuration
+const THINGSPEAK_CHANNEL_ID = '2966398';
+const THINGSPEAK_API_KEY = '3ON9J8UTPCIJXEAS';
+const THINGSPEAK_API_URL = 'https://api.thingspeak.com/update.json';
+const THINGSPEAK_FETCH_URL = `https://api.thingspeak.com/channels/${THINGSPEAK_CHANNEL_ID}/feeds.json`;
+
 type HealthStatus = 'GOOD' | 'POOR_SIGNAL' | 'LOW_BATTERY';
 type DeviceStatus = 'ACTIVE' | 'INACTIVE' | 'ERROR';
 
@@ -54,6 +60,29 @@ interface UserAuth {
   isSathiya: boolean;
   isBuvana: boolean;
 }
+
+// Function to send data to ThingSpeak
+const sendToThingSpeak = async (message: string) => {
+  try {
+    const response = await fetch(THINGSPEAK_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        api_key: THINGSPEAK_API_KEY,
+        field1: message,
+        created_at: new Date().toISOString()
+      })
+    });
+    
+    const data = await response.json();
+    console.log('ThingSpeak response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error sending to ThingSpeak:', error);
+  }
+};
 
 const Admin: React.FC<AdminProps> = ({ darkMode }) => {
   const [manualMessages, setManualMessages] = useState<Message[]>([]);
@@ -110,8 +139,12 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
     if (auth) {
       // Show initial message for 3 seconds
       setShowInitialMessage(true);
-      setCurrentMessage("MindScape Social Media Health Analyses with  Wearable Device Powered");
+      const initialMsg = "MindScape Social Media Ai Health Analyses with Wearable Device";
+      setCurrentMessage(initialMsg);
       
+      // Send initial message to ThingSpeak
+      sendToThingSpeak(initialMsg);
+
       initialMessageTimerRef.current = setTimeout(() => {
         setShowInitialMessage(false);
         setCurrentMessage('');
@@ -120,7 +153,10 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
 
       // Set up 3-minute timer for special message
       threeMinuteTimerRef.current = setTimeout(() => {
-        setCurrentMessage("MindScape Social Media Health Analyses & Wearable Device Powered by Sathiya");
+        const specialMsg = "MindScape Social Media Ai Health Analyses with Wearable Device";
+        setCurrentMessage(specialMsg);
+        // Send special message to ThingSpeak
+        sendToThingSpeak(specialMsg);
         setTimeout(() => {
           setCurrentMessage('');
         }, 3000);
@@ -221,6 +257,9 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
     setManualMessages(updateMessages);
     setCurrentMessage(content);
 
+    // Send manual message to ThingSpeak
+    sendToThingSpeak(content);
+
     try {
       await simulateMessageFlow();
       const updateStatus = (msgs: Message[]): Message[] =>
@@ -248,34 +287,38 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
       autoIntervalRef.current = setInterval(() => {
         const mentalHealthTips = [
           "Stay hydrated! Drink water regularly.",
-          "MindScape: Your mental health matters",
+          "Your mental health matters",
           "Take a 5-minute break and stretch",
-          "MindScape: Practice deep breathing",
+          "Practice deep breathing",
           "Remember to stand up and move around",
-          "MindScape: Track your mood today",
-          "MindScape: Your feelings are valid",
+          "Track your mood today",
+          "Your feelings are valid",
           "Pause and check in with yourself",
-          "MindScape: One step at a time is still progress",
+          "One step at a time is still progress",
           "Don't forget to smile—it boosts your mood",
-          "MindScape: You deserve rest, not guilt",
+          "You deserve rest, not guilt",
           "Take a moment to be proud of how far you've come",
-          "MindScape: Reflect on something you're grateful for",
+          "Reflect on something you're grateful for",
           "Deep breath in… now slowly breathe out",
-          "MindScape: You are more than your bad days",
+          "You are more than your bad days",
           "Step outside, get a bit of fresh air",
-          "MindScape: It's okay to ask for help",
+          "It's okay to ask for help",
           "Drink a glass of water and reset your focus",
-          "MindScape: Celebrate small wins today",
+          "Celebrate small wins today",
           "Stretch your arms, unclench your jaw",
-          "MindScape: Let go of what you can't control",
+          "Let go of what you can't control",
           "Put on your favorite song and vibe for a minute",
-          "MindScape: Check in—how's your mind feeling?",
+          "Check in—how's your mind feeling?",
           "Look away from the screen and relax your eyes",
-          "MindScape: Rest is productive too",
+          "Rest is productive too",
           "Keep going. You're doing better than you think"
         ];
         const randomTip = mentalHealthTips[Math.floor(Math.random() * mentalHealthTips.length)];
         setCurrentMessage(randomTip);
+        
+        // Send auto message to ThingSpeak
+        sendToThingSpeak(randomTip);
+        
         setAutoMessages(prev => [...prev.slice(-2), {
           id: Date.now().toString(),
           content: randomTip,
@@ -283,7 +326,7 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
           status: 'SENT',
           deviceId: connectedDevices[0]?.id || '',
         }]);
-      }, 180000);
+      }, 18000);
 
       return () => {
         if (autoIntervalRef.current) {
@@ -464,7 +507,7 @@ const Admin: React.FC<AdminProps> = ({ darkMode }) => {
               </div>
               <div className="flex items-center space-x-4">
                 <span className="text-sm dark:text-white">
-                  Logged in as: {auth.username} {auth.isAdmin ? '(Admin)' :[]}
+                  Logged in as: {auth.username} {auth.isAdmin ? '(Admin)' : ''}
                 </span>
                 <button
                   onClick={handleLogout}

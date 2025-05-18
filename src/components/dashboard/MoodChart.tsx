@@ -20,14 +20,14 @@ interface MoodChartProps {
 }
 
 const COLORS = {
-  happy: '#4ade80',
-  sad: '#60a5fa',
-  stressed: '#f87171',
-  neutral: '#EE82EE',
-  aiHappy: '#16a34a',
-  aiSad: '#1d4ed8',
-  aiStressed: '#dc2626',
-  aiNeutral: '#9333ea'
+  happy: '#4ade80',        // green-400
+  sad: '#60a5fa',          // blue-400
+  stressed: '#f87171',     // red-400
+  neutral: '#a78bfa',      // purple-400
+  aiHappy: '#16a34a',      // green-600
+  aiSad: '#1d4ed8',        // blue-700
+  aiStressed: '#dc2626',   // red-600
+  aiNeutral: '#7c3aed'     // purple-600
 };
 
 const RADIAN = Math.PI / 180;
@@ -124,7 +124,7 @@ const analyzeMentalHealth = (userData: UserData | null): MoodData[] => {
   const foodScore = calculateFoodScore(userData.morningFood, userData.eveningFood);
   const ageScore = calculateAgeScore(userData.age);
 
-  // Calculate mood components based on the provided formulas
+  // Calculate mood components
   let stress = (0.4 * screenScore) - (0.3 * sleepScore) - (0.2 * foodScore) + (0.1 * ageScore) + 4;
   let happiness = (0.3 * sleepScore) + (0.2 * foodScore) + (0.1 * ageScore) - (0.3 * screenScore) + 5;
   let sadness = (0.3 * screenScore) - (0.2 * sleepScore) - (0.2 * foodScore) + (0.1 * ageScore) + 3;
@@ -134,11 +134,11 @@ const analyzeMentalHealth = (userData: UserData | null): MoodData[] => {
   happiness = Math.max(0, Math.min(10, happiness));
   sadness = Math.max(0, Math.min(10, sadness));
 
-  // Calculate neutrality based on the formula
+  // Calculate neutrality
   let neutrality = 10 - Math.abs(happiness - sadness);
   neutrality = Math.max(0, Math.min(10, neutrality));
 
-  // Convert to percentages (scale to 0-100)
+  // Convert to percentages
   const total = happiness + sadness + stress + neutrality;
   const happyPercentage = Math.round((happiness / total) * 100);
   const sadPercentage = Math.round((sadness / total) * 100);
@@ -363,7 +363,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
 
   const renderChartSelector = () => (
     <div className="flex flex-wrap gap-2 mb-4">
-      {['circular', 'percentage', 'bar', 'line'].map((type) => (
+      {!showComparison && ['circular', 'percentage', 'bar', 'line'].map((type) => (
         <button
           key={type}
           onClick={() => onChartTypeChange?.(type as ChartType)}
@@ -411,8 +411,8 @@ const MoodChart: React.FC<MoodChartProps> = ({
                 <XAxis dataKey="category" />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
-                <Bar dataKey="percentage" fill="#8884d8" name="Your Data" />
-                <Bar dataKey="aiPercentage" fill="#82ca9d" name="AI Analysis" />
+                <Bar dataKey="percentage" fill={COLORS.happy} name="Your Data" />
+                <Bar dataKey="aiPercentage" fill={COLORS.aiHappy} name="AI Analysis" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -424,10 +424,10 @@ const MoodChart: React.FC<MoodChartProps> = ({
                 <XAxis dataKey="category" />
                 <YAxis domain={[0, 100]} />
                 <Tooltip />
-                <Bar dataKey="percentage" fill="#8884d8" name="Your Data" />
-                <Bar dataKey="aiPercentage" fill="#82ca9d" name="AI Analysis" />
-                <Bar dataKey="nlmPercentage" fill="#ffc658" name="NLM Pattern" />
-                <Bar dataKey="datasetPercentage" fill="#ff8042" name="Dataset Avg" />
+                <Bar dataKey="percentage" fill={COLORS.happy} name="Your Data" />
+                <Bar dataKey="aiPercentage" fill={COLORS.aiHappy} name="AI Analysis" />
+                <Bar dataKey="nlmPercentage" fill={COLORS.sad} name="NLM Pattern" />
+                <Bar dataKey="datasetPercentage" fill={COLORS.stressed} name="Dataset Avg" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -437,6 +437,17 @@ const MoodChart: React.FC<MoodChartProps> = ({
   };
 
   const renderChart = () => {
+    if (showComparison) {
+      return (
+        <div className="h-64 w-full flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-lg font-medium mb-4">AI Comparison Analysis</p>
+            <p className="text-gray-600 dark:text-gray-400">Viewing detailed comparison below</p>
+          </div>
+        </div>
+      );
+    }
+
     switch (chartType) {
       case 'circular':
         return (
@@ -444,7 +455,7 @@ const MoodChart: React.FC<MoodChartProps> = ({
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={showComparison ? aiData : data}
+                  data={data}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -454,32 +465,22 @@ const MoodChart: React.FC<MoodChartProps> = ({
                   dataKey="percentage"
                   nameKey="category"
                 >
-                  {(showComparison ? aiData : data).map((entry, index) => (
+                  {data.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={showComparison
-                        ? COLORS[`ai${entry.category.charAt(0).toUpperCase() + entry.category.slice(1)}` as keyof typeof COLORS]
-                        : COLORS[entry.category as keyof typeof COLORS]}
+                      fill={COLORS[entry.category as keyof typeof COLORS]}
                     />
                   ))}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-            {showComparison && (
-              <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                <div className="bg-white dark:bg-gray-800 bg-opacity-90 p-4 rounded-lg shadow-lg max-w-xs">
-                  <h3 className="font-semibold mb-2">AI Analysis</h3>
-                  <p className="text-sm">{analysisResult || "Analyzing patterns..."}</p>
-                </div>
-              </div>
-            )}
           </div>
         );
       case 'percentage':
         return (
           <div className="h-full w-full flex flex-col justify-center">
-            {(showComparison ? aiData : data).map((entry, index) => (
+            {data.map((entry, index) => (
               <div key={index} className="mb-4">
                 <div className="flex justify-between items-center mb-1">
                   <span className="capitalize">{entry.category}</span>
@@ -490,19 +491,12 @@ const MoodChart: React.FC<MoodChartProps> = ({
                     className="h-2.5 rounded-full transition-all duration-1000"
                     style={{
                       width: `${entry.percentage}%`,
-                      backgroundColor: showComparison
-                        ? COLORS[`ai${entry.category.charAt(0).toUpperCase() + entry.category.slice(1)}` as keyof typeof COLORS]
-                        : COLORS[entry.category as keyof typeof COLORS]
+                      backgroundColor: COLORS[entry.category as keyof typeof COLORS]
                     }}
                   ></div>
                 </div>
               </div>
             ))}
-            {showComparison && analysisResult && (
-              <div className="mt-4 p-3 bg-indigo-50 dark:bg-indigo-900 rounded-md">
-                <p className="text-sm">{analysisResult}</p>
-              </div>
-            )}
           </div>
         );
       case 'bar':
@@ -514,28 +508,12 @@ const MoodChart: React.FC<MoodChartProps> = ({
                 <XAxis dataKey="name" />
                 <YAxis domain={[0, 'auto']} />
                 <Tooltip />
-                {showComparison ? (
-                  <>
-                    <Bar dataKey="aiHappy" fill={COLORS.aiHappy} stackId="a" name="AI Happy" />
-                    <Bar dataKey="aiSad" fill={COLORS.aiSad} stackId="a" name="AI Sad" />
-                    <Bar dataKey="aiStressed" fill={COLORS.aiStressed} stackId="a" name="AI Stressed" />
-                    <Bar dataKey="aiNeutral" fill={COLORS.aiNeutral} stackId="a" name="AI Neutral" />
-                  </>
-                ) : (
-                  <>
-                    <Bar dataKey="happy" fill={COLORS.happy} stackId="a" name="Happy" />
-                    <Bar dataKey="sad" fill={COLORS.sad} stackId="a" name="Sad" />
-                    <Bar dataKey="stressed" fill={COLORS.stressed} stackId="a" name="Stressed" />
-                    <Bar dataKey="neutral" fill={COLORS.neutral} stackId="a" name="Neutral" />
-                  </>
-                )}
+                <Bar dataKey="happy" fill={COLORS.happy} stackId="a" name="Happy" />
+                <Bar dataKey="sad" fill={COLORS.sad} stackId="a" name="Sad" />
+                <Bar dataKey="stressed" fill={COLORS.stressed} stackId="a" name="Stressed" />
+                <Bar dataKey="neutral" fill={COLORS.neutral} stackId="a" name="Neutral" />
               </BarChart>
             </ResponsiveContainer>
-            {showComparison && analysisResult && (
-              <div className="mt-2 p-2 text-xs bg-gray-100 dark:bg-gray-800 rounded">
-                <p>{analysisResult}</p>
-              </div>
-            )}
           </div>
         );
       case 'line':
@@ -547,28 +525,12 @@ const MoodChart: React.FC<MoodChartProps> = ({
                 <XAxis dataKey="name" />
                 <YAxis domain={[0, 'auto']} />
                 <Tooltip />
-                {showComparison ? (
-                  <>
-                    <Area dataKey="aiHappy" stroke={COLORS.aiHappy} fill={COLORS.aiHappy} name="AI Happy" />
-                    <Area dataKey="aiSad" stroke={COLORS.aiSad} fill={COLORS.aiSad} name="AI Sad" />
-                    <Area dataKey="aiStressed" stroke={COLORS.aiStressed} fill={COLORS.aiStressed} name="AI Stressed" />
-                    <Area dataKey="aiNeutral" stroke={COLORS.aiNeutral} fill={COLORS.aiNeutral} name="AI Neutral" />
-                  </>
-                ) : (
-                  <>
-                    <Area dataKey="happy" stroke={COLORS.happy} fill={COLORS.happy} name="Happy" />
-                    <Area dataKey="sad" stroke={COLORS.sad} fill={COLORS.sad} name="Sad" />
-                    <Area dataKey="stressed" stroke={COLORS.stressed} fill={COLORS.stressed} name="Stressed" />
-                    <Area dataKey="neutral" stroke={COLORS.neutral} fill={COLORS.neutral} name="Neutral" />
-                  </>
-                )}
+                <Area dataKey="happy" stroke={COLORS.happy} fill={COLORS.happy} name="Happy" />
+                <Area dataKey="sad" stroke={COLORS.sad} fill={COLORS.sad} name="Sad" />
+                <Area dataKey="stressed" stroke={COLORS.stressed} fill={COLORS.stressed} name="Stressed" />
+                <Area dataKey="neutral" stroke={COLORS.neutral} fill={COLORS.neutral} name="Neutral" />
               </AreaChart>
             </ResponsiveContainer>
-            {showComparison && analysisResult && (
-              <div className="mt-2 p-2 text-xs bg-gray-100 dark:bg-gray-800 rounded">
-                <p>{analysisResult}</p>
-              </div>
-            )}
           </div>
         );
       default:
@@ -607,37 +569,63 @@ const MoodChart: React.FC<MoodChartProps> = ({
         )}
       </div>
 
-      {/* Mood percentage boxes */}
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div className="bg-green-100 dark:bg-green-900 p-2 rounded-lg text-center">
-          <span className="block text-sm text-green-800 dark:text-green-200">Happy</span>
-          <span className="font-bold text-green-600 dark:text-green-300">
-            {currentMood.happy}%
-          </span>
+      {/* Mood percentage boxes - only show when not in comparison mode */}
+      {!showComparison && (
+        <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div 
+            className="p-2 rounded-lg text-center" 
+            style={{ 
+              backgroundColor: `${COLORS.happy}20`,
+              color: COLORS.happy
+            }}
+          >
+            <span className="block text-sm">Happy</span>
+            <span className="font-bold">
+              {currentMood.happy}%
+            </span>
+          </div>
+          <div 
+            className="p-2 rounded-lg text-center" 
+            style={{ 
+              backgroundColor: `${COLORS.sad}20`,
+              color: COLORS.sad
+            }}
+          >
+            <span className="block text-sm">Sad</span>
+            <span className="font-bold">
+              {currentMood.sad}%
+            </span>
+          </div>
+          <div 
+            className="p-2 rounded-lg text-center" 
+            style={{ 
+              backgroundColor: `${COLORS.stressed}20`,
+              color: COLORS.stressed
+            }}
+          >
+            <span className="block text-sm">Stressed</span>
+            <span className="font-bold">
+              {currentMood.stressed}%
+            </span>
+          </div>
+          <div 
+            className="p-2 rounded-lg text-center" 
+            style={{ 
+              backgroundColor: `${COLORS.neutral}20`,
+              color: COLORS.neutral
+            }}
+          >
+            <span className="block text-sm">Neutral</span>
+            <span className="font-bold">
+              {currentMood.neutral}%
+            </span>
+          </div>
         </div>
-        <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-lg text-center">
-          <span className="block text-sm text-blue-800 dark:text-blue-200">Sad</span>
-          <span className="font-bold text-blue-600 dark:text-blue-300">
-            {currentMood.sad}%
-          </span>
-        </div>
-        <div className="bg-red-100 dark:bg-red-900 p-2 rounded-lg text-center">
-          <span className="block text-sm text-red-800 dark:text-red-200">Stressed</span>
-          <span className="font-bold text-red-600 dark:text-red-300">
-            {currentMood.stressed}%
-          </span>
-        </div>
-        <div className="bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-center">
-          <span className="block text-sm text-gray-800 dark:text-gray-200">Neutral</span>
-          <span className="font-bold text-gray-600 dark:text-gray-300">
-            {currentMood.neutral}%
-          </span>
-        </div>
-      </div>
+      )}
 
       {showComparison && !isLoading && renderComparisonChart()}
 
-      {analysisResult && !showComparison && (
+      {analysisResult && (
         <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
           <h3 className="font-semibold mb-2">AI Insights</h3>
           <p>{analysisResult}</p>
